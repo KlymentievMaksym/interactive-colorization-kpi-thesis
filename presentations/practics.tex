@@ -1,0 +1,97 @@
+% !TEX program = lualatex
+
+\documentclass[xcolor=table]{beamer}
+\usepackage{fontspec}
+\setmainfont{Verdana}
+\setsansfont{Verdana}
+\setmonofont{Cambria}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{calc}
+\usepackage{datetime}
+
+\makeatletter
+\def\input@path{{themes/}}
+\makeatother
+\usetheme{ImageColor}
+
+\input{utils/data.tex}
+
+\begin{document}
+
+
+% % --- HEADER/FOOTER ---
+% \setbeamertemplate{frametitle}{
+%     \nointerlineskip
+%     \begin{beamercolorbox}[wd=\paperwidth, ht=3.5ex, dp=1.5ex, leftskip=1cm]{frametitle}
+%         \textbf{\insertframetitle}
+%         \hfill
+%         \includegraphics[height=2.5ex]{example-image} \hspace{1cm} % Тут лого КПІ
+%     \end{beamercolorbox}
+% }
+
+% \setbeamertemplate{footline}{
+%     \begin{beamercolorbox}[wd=\paperwidth, ht=2.5ex, dp=1ex, leftskip=1cm, rightskip=1cm]{palette primary}
+%         \tiny \insertshortauthor \hfill \insertshorttitle \hfill \insertframenumber/\inserttotalframenumber
+%     \end{beamercolorbox}
+% }
+
+    \begin{frame}[plain]
+        \maketitle
+    \end{frame}
+
+    % % 2. СЛАЙД З ТЕКСТОМ ТА КОЛЬОРОМ
+    % \begin{frame}{Актуальність та наукова новизна}
+    %     \begin{columns}
+    %         \column{0.55\textwidth}
+    %         \begin{block}{Проблема десатурації}
+    %             Традиційні CNN-моделі часто видають сірі кольори через мінімізацію MSE.
+    %         \end{block}
+            
+    %         \vspace{0.3cm}
+            
+    %         \begin{itemize}
+    %             \item \textbf{Mamba-SSM:} Забезпечує лінійну складність $O(N)$.
+    %             \item \textbf{Bi-directional scan:} Враховує контекст з обох боків послідовності пікселів.
+    %             \item \textbf{Efficiency:} Зниження VRAM на 80\% порівняно з ViT.
+    %         \end{itemize}
+            
+    %         \column{0.45\textwidth}
+    %         \begin{figure}
+    %             \centering
+    %             \includegraphics[width=\textwidth]{example-image} % Сюди результат ведмедя
+    %             \caption{Результат колоризації Bi-Mamba}
+    %         \end{figure}
+    %     \end{columns}
+    % \end{frame}
+
+    % % 3. ПОРІВНЯЛЬНА ТАБЛИЦЯ (Metric Focus)
+    % \begin{frame}{Порівняльний аналіз архітектур}
+    %     \centering
+    %     \small
+    %     \rowcolors{2}{background1}{white}
+    %     \begin{tabular}{l c c c}
+    %         \toprule
+    %         \textbf{Параметр} & \textbf{DDColor} & \textbf{Mamba (Ours)} & \textbf{Improvement} \\
+    %         \midrule
+    %         LPIPS (↓) & 0.151 & \textbf{0.121} & \textbf{+19.8\%} \\
+    %         VRAM (MB) & 1091 & \textbf{187} & \textbf{5.8x} \\
+    %         Inference (ms) & 40.2 & \textbf{16.5} & \textbf{2.4x} \\
+    %         Hint MSE (↓) & 0.031 & \textbf{0.002} & \textbf{15x} \\
+    %         \bottomrule
+    %     \end{tabular}
+        
+    %     \vspace{0.5cm}
+    %     \begin{alertblock}{Висновок}
+    %         Використання селективного сканування дозволяє досягти кращої якості при значно менших витратах ресурсів.
+    %     \end{alertblock}
+    % \end{frame}
+
+    \begin{frame}[plain]
+        \centering \color{textCyan} \Huge \textbf{Дякую за увагу!}
+    \end{frame}
+
+\end{document}

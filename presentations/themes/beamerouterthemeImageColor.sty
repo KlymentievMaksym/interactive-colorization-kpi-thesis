@@ -1,0 +1,36 @@
+% !TEX root = ../practics.tex
+
+\mode<presentation>
+  \setbeamertemplate{frametitle}
+  {
+      \nointerlineskip
+      \begin{beamercolorbox}[wd=\paperwidth, ht=3.5ex, dp=2ex, leftskip=0.4cm]{frametitle}
+          \usebeamerfont{frametitle}\textbf{\insertframetitle}
+      \end{beamercolorbox}
+      \begin{beamercolorbox}[wd=\paperwidth, ht=1.5pt]{palette primary}
+      \end{beamercolorbox}
+  }
+
+  \setbeamertemplate{footline}
+  {
+      \leavevmode
+    
+      \begin{beamercolorbox}[wd=\paperwidth, ht=1.5pt]{palette primary}
+      \end{beamercolorbox}
+    
+      \hbox{%
+          \begin{beamercolorbox}[wd=.20\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
+              \usebeamerfont{author in head/foot}\reportAuthorFShort%
+          \end{beamercolorbox}%
+          \begin{beamercolorbox}[wd=.65\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
+              \reportShortTitle%
+          \end{beamercolorbox}%
+          \begin{beamercolorbox}[wd=.06\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
+              \Year%
+          \end{beamercolorbox}%
+          \begin{beamercolorbox}[wd=.09\paperwidth, ht=4ex, dp=3ex, center]{palette tertiary}%
+              \insertframenumber{} / \inserttotalframenumber%
+          \end{beamercolorbox}%
+      }
+  }
+\mode<all>

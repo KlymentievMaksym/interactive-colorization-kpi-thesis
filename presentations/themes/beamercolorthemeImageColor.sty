@@ -1,0 +1,58 @@
+\mode<presentation>
+    % --- Core Palette ---
+    \definecolor{main1}{HTML}{00FF44}  % Bright Neon Green
+    \definecolor{main2}{HTML}{00C853}  % Emerald Glow
+    \definecolor{side1}{HTML}{CCFF00}  % Luminous Lime
+    
+    % --- Backgrounds ---
+    \definecolor{background1}{HTML}{0A0F0B}  % Дуже глибокий чорно-зелений
+    \definecolor{background2}{HTML}{151F17}  % Темний приглушений зелено-сірий (для плашок)
+    % \definecolor{background1}{HTML}{0D1117}  % Глибокий синьо-чорний (Slate)
+    % \definecolor{background2}{HTML}{161B22}  % Елегантний темний синьо-сірий
+    % \definecolor{background1}{HTML}{121212}  % Класичний м'який графітовий (стандарт Material Design)
+    % \definecolor{background2}{HTML}{242424}  % Трохи світліший графіт для виділення блоків
+
+    % --- Typography ---
+    \definecolor{textWhite}{HTML}{F0F0F0}    % Off-white for highly readable body text
+    \definecolor{textCyan}{HTML}{9AFDFF}     % Cyan for accents/highlights
+    \definecolor{textLime}{HTML}{DEFF9A}     % Pale lime for secondary text
+
+    % --- Base Settings ---
+    % 'normal text' is critical! It sets the global background and default font color.
+    \setbeamercolor{normal text}{fg=textWhite, bg=background1}
+    \setbeamercolor{alerted text}{fg=side1}
+    \setbeamercolor{description item}{fg=side1}
+
+    \setbeamercolor{background canvas}{bg=background1}
+    \setbeamercolor{structure}{fg=main1} % Controls bullets, table of contents, etc.
+
+    % --- Palettes (Used by inner/outer themes for footlines, headers, etc.) ---
+    \setbeamercolor{palette primary}{fg=background1, bg=main1}
+    \setbeamercolor{palette secondary}{fg=background1, bg=main2}
+    \setbeamercolor{palette tertiary}{fg=background1, bg=side1}
+
+    % --- Titles ---
+    \setbeamercolor{title}{fg=main1}
+    \setbeamercolor{frametitle}{fg=side1, bg=background2} % Lime text on black background
+
+    % --- Blocks ---
+    % Standard Block (Emerald header, dark grey body)
+    \setbeamercolor{block title}{bg=main2, fg=background1}
+    \setbeamercolor{block body}{bg=background2, fg=textWhite}
+    
+    % Alert Block (Bright neon green header to grab attention)
+    \setbeamercolor{block title alert}{bg=main1, fg=background1}
+    \setbeamercolor{block body alert}{bg=background2, fg=textWhite}
+    
+    % Example Block (Adding this as it's standard in Beamer)
+    \setbeamercolor{block title example}{bg=side1, fg=background1}
+    \setbeamercolor{block body example}{bg=background2, fg=textWhite}
+    
+    % --- Lists ---
+    \setbeamercolor{item}{fg=main1}
+    \setbeamercolor{subitem}{fg=main2}
+    \setbeamercolor{item projected}{bg=main1, fg=background1}
+    \setbeamercolor{subitem projected}{bg=main2, fg=background1}
+
+    \setbeamercolor{footline dark}{fg=main2, bg=background2}
+\mode<all>
