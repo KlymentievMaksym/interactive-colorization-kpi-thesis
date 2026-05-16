@@ -3,13 +3,48 @@
 \mode<presentation>
   \setbeamertemplate{frametitle}
   {
-      \nointerlineskip
-      \begin{beamercolorbox}[wd=\paperwidth, ht=3.5ex, dp=2ex, leftskip=0.4cm]{frametitle}
-          \usebeamerfont{frametitle}\textbf{\insertframetitle}
-      \end{beamercolorbox}
-      \begin{beamercolorbox}[wd=\paperwidth, ht=1.5pt]{palette primary}
-      \end{beamercolorbox}
+    \nointerlineskip
+    \ifx\insertframesubtitle\@empty
+        \begin{beamercolorbox}[wd=\paperwidth, ht=3.5ex, dp=2ex, leftskip=0.4cm]{frametitle}
+            \usebeamerfont{frametitle}\textbf{\insertframetitle}
+        \end{beamercolorbox}
+    \else
+        % \begin{beamercolorbox}[wd=\paperwidth, ht=3.5ex, dp=2ex, leftskip=0.4cm]{frametitle}
+        %     \usebeamerfont{frametitle}\textbf{\insertframetitle}
+        % \end{beamercolorbox}
+        \begin{beamercolorbox}[wd=\paperwidth, ht=5ex, dp=2ex, leftskip=0.4cm]{frametitle}
+            \usebeamerfont{frametitle}\textbf{\insertframetitle}\strut\par
+            \vspace{0.3ex}
+            {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle\strut\par}
+        \end{beamercolorbox}
+    \fi
+    \begin{beamercolorbox}[wd=\paperwidth, ht=1.5pt]{palette primary}
+    \end{beamercolorbox}
   }
+    % \setbeamertemplate{frametitle}
+    % {
+    %     \nointerlineskip
+    %     \begin{beamercolorbox}[wd=\paperwidth, leftskip=0.4cm, rightskip=0.4cm]{frametitle}
+    %         % Верхній відступ (аналог ht=3.5ex)
+    %         \vspace{1.5ex} 
+            
+    %         % Головний заголовок
+    %         \usebeamerfont{frametitle}\textbf{\insertframetitle}\strut\par
+            
+    %         % Перевірка: чи існує підзаголовок?
+    %         \ifx\insertframesubtitle\@empty
+    %         \else
+    %             \vspace{0.25ex} % Пробіл між заголовком і підзаголовком
+    %             {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle\strut\par}
+    %         \fi
+            
+    %         % Нижній відступ (аналог dp=2ex)
+    %         \vspace{1ex} 
+    %     \end{beamercolorbox}%
+    %     \nointerlineskip % Забороняємо LaTeX додавати зайвий пробіл перед лінією
+    %     \begin{beamercolorbox}[wd=\paperwidth, ht=1.5pt]{palette primary}
+    %     \end{beamercolorbox}
+    % }
 
   \setbeamertemplate{footline}
   {
@@ -19,16 +54,16 @@
       \end{beamercolorbox}
     
       \hbox{%
-          \begin{beamercolorbox}[wd=.20\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
+          \begin{beamercolorbox}[wd=.16\paperwidth, ht=4ex, dp=3.5ex, center]{palette secondary}%
               \usebeamerfont{author in head/foot}\reportAuthorFShort%
           \end{beamercolorbox}%
-          \begin{beamercolorbox}[wd=.65\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
-              \reportShortTitle%
+          \begin{beamercolorbox}[wd=.70\paperwidth, ht=4ex, dp=3.5ex, center]{palette secondary}%
+              \parbox[c]{.68\paperwidth}{\centering \reportTitle}%
           \end{beamercolorbox}%
-          \begin{beamercolorbox}[wd=.06\paperwidth, ht=4ex, dp=3ex, center]{palette secondary}%
+          \begin{beamercolorbox}[wd=.06\paperwidth, ht=4ex, dp=3.5ex, center]{palette secondary}%
               \Year%
           \end{beamercolorbox}%
-          \begin{beamercolorbox}[wd=.09\paperwidth, ht=4ex, dp=3ex, center]{palette tertiary}%
+          \begin{beamercolorbox}[wd=.08\paperwidth, ht=4ex, dp=3.5ex, center]{palette tertiary}%
               \insertframenumber{} / \inserttotalframenumber%
           \end{beamercolorbox}%
       }

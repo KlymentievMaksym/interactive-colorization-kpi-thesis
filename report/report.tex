@@ -1,0 +1,50 @@
+% !TEX program = lualatex
+%% !BIB program = biber
+
+\documentclass[14pt]{utils/bachelor_thesis}
+
+\input{utils/packages}
+
+\addbibresource{./bibliography/image_colorization.bib}
+
+\input{utils/data}
+\input{utils/redefinitions}
+
+\frenchspacing
+\onehalfspacing
+
+\begin{document}
+    \pagestyle{plain}
+
+    \input{chapters/title}
+
+    \tableofcontents
+    \cleardoublepage
+
+    % \input{chapters/shortings}
+
+    \input{chapters/introduction}
+
+    \foreach \x in {1, 2, ..., 3} {
+        \input{chapters/chapter_0\x}
+    }
+
+    % \input{chapters/conclusions}
+
+    \defbibenvironment{bibliography}
+        {\list
+        {\printfield[labelnumberwidth]{labelnumber}}
+        {\setfontsize{14}%
+        }}
+        {\endlist}
+        {\item}
+
+    \printbibliography[heading=bibintoc,title={Перелік посилань}]
+
+    % Створюємо додатки (дивись у файли додатків для необхідних пояснень)
+    % Якщо ви маєте меншу або більшу кількість додатків, модифікуйте наступні 
+    % рядки відповідним чином
+    % Якщо ви не маєте додатків, просто закоментуйте наступні рядки
+    % \input{chapters/z1_appendix_A}
+    % \input{chapters/z2_appendix_B}
+\end{document}
