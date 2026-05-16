@@ -40,10 +40,26 @@
             \begin{enumerate}
                 \item З оригінального кольорового зображення вилучаються істинні канали кольоровості $Y \in \mathbb{R}^{2 \times H \times W}$.
                 \item Випадковим чином визначається цільова кількість підказок $K$ з дискретного геометричного розподілу $K \sim \mathrm{Geom}(p=0.2)$,
-                    в якому математичне сподівання становить $\mathbb{E}[K] = \frac{1 - p}{p}$, тобто в середньому генерується $4$ підказки. Ймовірність появи конкретної кількості підказок $k$ обчислюється як $P(K=k) = p \cdot (1-p)^k$. Зокрема, ймовірність генерації зображення взагалі без підказок, $K=0$, становить $20\%$, що змушує модель також вчитися безумовній автоматичній колоризації.
-                \item Для імітації людської уваги координати генеруються алгоритмом виділення візуальної значимості. Додатково застосовується евристика мінімальної просторової відстані, яка відкидає нові координати, якщо вони знаходяться занадто близько до вже існуючих, уникаючи неприродного скупчення кліків.
-                \item Формується маска інтенсивності $M$: у вибраних координатах розміщуються двовимірні радіальні гаусові ядра випадкового радіуса та випадкової амплітуди інтенсивності (від $0.2$ до $1.0$). Це імітує різні розміри пензля користувача та ступінь <<впевненості>> підказки.
-                    Якщо гаусові плями перекриваються, маска оновлюється за принципом максимуму $M_{new} = \max(M_{old}, G_{patch})$.
+                    в якому математичне сподівання становить $\mathbb{E}[K] = \frac{1 - p}{p}$, тобто в середньому генерується $4$ підказки.
+                    Ймовірність появи конкретної кількості підказок $k$ обчислюється як $P(K=k) = p(1-p)^k$.
+                    Зокрема, ймовірність генерації зображення взагалі без підказок, тобто $K=0$, становить $20\%$, що змушує модель також вчитися безумовній автоматичній колоризації.
+                \item Для імітації фокусу людської уваги координати підказок генеруються за допомогою алгоритму виділення візуальної значущості.
+                    Алгоритм обчислює двовимірну функцію щільності ймовірності (PDF) на основі каналу яскравості $I_L$.
+                    Спочатку за допомогою згортки з операторами Собеля ($S_x, S_y$) обчислюється магнітуда градієнтів:
+                    \begin{equation*}
+                        G = \sqrt{(I_L * S_x)^2 + (I_L * S_y)^2 + \epsilon}
+                    \end{equation*}
+                    Для поширення значущості від контурів усередину об'єктів до матриці $G$ застосовується просторове усереднення.
+                    Отримана карта нормалізується та змішується з рівномірним розподілом $U$ з ваговим коефіцієнтом $\alpha = 0.15$,
+                    щоб забезпечити ненульову ймовірність вибору точок навіть в абсолютно однорідних областях зображення:
+                    \begin{equation*}
+                        \mathrm{PDF} = (1 - \alpha) \frac{G_{\mathrm{blur}}}{\sum G_{\mathrm{blur}}} + \alpha U
+                    \end{equation*}
+                    Координати семплюються з цього розподілу без повернення.
+                    Додатково застосовується евристика мінімальної просторової відстані, яка відкидає нові координати, якщо вони знаходяться занадто близько до вже існуючих, уникаючи неприродного скупчення кліків.
+                \item Формується маска інтенсивності $M$: у вибраних координатах розміщуються двовимірні радіальні гаусові ядра випадкового радіуса та випадкової амплітуди інтенсивності (від $0.2$ до $1.0$).
+                    Це імітує різні розміри пензля користувача та ступінь <<впевненості>> підказки.
+                    Якщо гаусові плями перекриваються, маска оновлюється за принципом максимуму $M_{\mathrm{new}} = \max(M_{\mathrm{old}}, G_{\mathrm{patch}})$.
                 \item Формуються канали підказок $a$ та $b$ шляхом поелементного множення істинних значень $Y$ на згенеровану маску $M$.
             \end{enumerate}
 
@@ -52,12 +68,192 @@
             \begin{enumerate}
                 \item Обчислюється матриця спектральної магнітуди, насиченості кольору, для всього зображення як сума квадратів значень каналів $a$ та $b$.
                 \item Визначаються координати пікселя з максимальною магнітудою, і в цій точці розміщується гаусова підказка фіксованого розміру.
-                \item Щоб запобігти вибору точок в одному й тому самому об'єкті, застосовується механізм просторового пригнічення: значення магнітуди в заданому радіусі навколо обраної точки примусово встановлюються у від'ємні значення ($-1.0$).
+                \item Щоб запобігти вибору точок в одному й тому самому об'єкті, застосовується механізм просторового пригнічення: значення магнітуди в заданому радіусі навколо обраної точки примусово встановлюються у від'ємні значення, а саме $-1.0$.
                 \item Процес ітеративно повторюється для заданої кількості підказок, наприклад, $K=3$.
             \end{enumerate}
             Такий конвеєр валідації гарантує, що модель отримує підказки саме в найскладніших, найбільш яскравих ділянках зображення, що дозволяє коректно оцінити її здатність до поширення кольору на великі просторові відстані.
 
     \section{Компонентна деталізація та алгоритми навчання гібридної моделі}
+        Розроблена гібридна модель базується на ієрархічній архітектурі типу U-Net,
+        у якій класичний центральний згортковий вузол (bottleneck) замінено на Mamba.
+        
+        Такий підхід дозволяє делегувати вилучення локальних просторових ознак та збереження контурів перевіреним згортковим шарам,
+        тоді як завдання глобального поширення кольору від точкових підказок виконується механізмами SSM з лінійною обчислювальною складністю.
+
+        \subsection{Згорткові блоки енкодера та декодера}
+            \begin{figure}[ht!]
+                \centering
+                \resizebox{0.9\textwidth}{!}{%
+                \begin{tikzpicture}[
+                    scale=0.9, transform shape,
+                    layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.6cm, minimum height=1cm},
+                    conv/.style={layer, fill=blue!10, draw=blue!40!black},
+                    bn/.style={layer, fill=orange!10, draw=orange!40!black},
+                    relu/.style={layer, fill=green!10, draw=green!40!black},
+                    io/.style={layer, fill=gray!10, draw=gray!40!black},
+                    arr/.style={->, thick, color=black, >=stealth},
+                    group_box/.style={draw, dashed, thick, color=gray, rounded corners=5pt}
+                ]
+                    % --- ВХІД ---
+                    \node[io] (in) at (-1.5, 0) {\textbf{Вхід $x$}\\$C_{in} \times H \times W$};
+                    % --- РЯДОК 1 ---
+                    \node[conv] (c1) at (2.5, 0) {\textbf{Conv2d} ($3\times3$)\\$C_{in} \to C_{out}$};
+                    \node[bn] (b1) at (6.2, 0) {\textbf{BatchNorm2d}\\$C_{out}$};
+                    \node[relu] (r1) at (9.9, 0) {\textbf{ReLU}};
+                    % --- РЯДОК 2 ---
+                    \node[conv] (c2) at (2.5, -2.5) {\textbf{Conv2d} ($3\times3$)\\$C_{out} \to C_{out}$};
+                    \node[bn] (b2) at (6.2, -2.5) {\textbf{BatchNorm2d}\\$C_{out}$};
+                    \node[relu] (r2) at (9.9, -2.5) {\textbf{ReLU}};
+                    % --- ВИХІД ---
+                    \node[io] (out) at (13.8, -2.5) {\textbf{Вихід $y$}\\$C_{out} \times H \times W$};
+                    
+                    % --- СТРІЛКИ ДАНИХ ---
+                    \draw[arr] (in) -- (c1);
+                    \draw[arr] (c1) -- (b1);
+                    \draw[arr] (b1) -- (r1);
+                    \draw[arr, rounded corners=6pt] (r1.south) -- ++(0, -0.75) -| (c2.north);
+                    \draw[arr] (c2) -- (b2);
+                    \draw[arr] (b2) -- (r2);
+                    \draw[arr] (r2) -- (out);
+                    
+                    % --- РАМКА НАВКОЛО SEQUENTIAL ---
+                    \draw[group_box] (0.8, 1.2) rectangle (11.6, -3.5);
+                    \node[color=black, font=\bfseries] at (6.2, 1.5) {DoubleConv (nn.Sequential)};
+                \end{tikzpicture}%
+                }
+                \caption{Архітектура блоку DoubleConv для енкодера та декодера}
+                \label{fig:doubleconv}
+            \end{figure}
+
+            Для вилучення просторових ознак та поступового зниження роздільної здатності використовується згортковий енкодер.
+            Кожен його рівень побудований за допомогою \textit{DoubleConv}, структурну схему якої зображено на рис.~\ref{fig:doubleconv}.
+
+            Блок складається з двох послідовних згорткових шарів ($3 \times 3$), за кожним з яких слідує нормалізація батчів та нелінійна функція активації ReLU.
+            Після кожного блоку в енкодері застосовується операція просторового стиснення --- Max Pooling $2 \times 2$, яка зменшує розмірність карт ознак удвічі.
+            
+            Декодер працює симетрично, використовуючи білінійну інтерполяцію для масштабування.
+            
+            Критичним елементом архітектури є наскрізні з'єднання, які прокидають карти ознак з енкодера безпосередньо у відповідні шари декодера,
+            що запобігає втраті дрібних контурів об'єктів, тобто ефекту <<color bleeding>>, під час глобальних трансформацій.
+
+        \subsection{Двонаправлене просторове сканування}
+            Оригінальна архітектура Mamba розроблена для обробки одновимірних послідовностей, наприклад, тексту, і сканує дані лише в одному напрямку.
+            Для двовимірних зображень це створює проблему просторової асиметрії: пікселі не отримують контекстної інформації від тих областей, що знаходяться нижче або правіше від них по сітці сканування.
+
+            Для вирішення цієї проблеми у bottleneck реалізовано алгоритм двонаправленого сканування.
+            Розгорнута у вектор послідовність просторових ознак $X \in \mathbb{R}^{B \times L \times D}$, де $L$ --- це $H$ помножена на $W$ та поділена на певний коефіцієнт, який залежить від U-Net, а $C$ --- кількість початкових каналів, у нашому випадку це $4$, обробляється паралельно: у природному напрямку та в інвертованому.
+            
+            Інверсія досягається за допомогою безвитратної операції перегортання тензора у пам'яті (\texttt{torch.flip}).
+            Фінальний вихід $Y$ обчислюється як середнє арифметичне двох проходів:
+            \begin{equation*}
+                Y = \frac{1}{2} \left( \mathrm{Mamba}_{\mathrm{fwd}}(X) + \mathrm{Flip}(\mathrm{Mamba}_{\mathrm{rev}}(\mathrm{Flip}(X))) \right)
+            \end{equation*}
+            Це забезпечує кожному просторовому токену доступ до повного глобального контексту сцени з усіх напрямків.
+
+        \subsection{Механізм спільного використання ваг}
+            \begin{figure}[ht!]
+                \centering
+                \resizebox{0.9\textwidth}{!}{%
+                \begin{tikzpicture}[
+                    scale=0.9, transform shape,
+                    layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.8cm, minimum height=1cm},
+                    mamba/.style={layer, fill=green!10, draw=green!60!black},
+                    norm/.style={layer, fill=orange!10, draw=orange!60!black},
+                    io/.style={layer, fill=gray!10, draw=gray!60!black},
+                    add/.style={circle, draw=black, thick, fill=gray!20, inner sep=2pt, font=\small, text=black},
+                    arr/.style={->, thick, >=stealth, color=black},
+                    braceArr/.style={draw, dashed, thick, color=gray, rounded corners=5pt},
+                    shared/.style={layer, fill=green!15, draw=green!60!black, minimum width=3.2cm}
+                ]
+                    % --- Рамка одного кроку ---
+                    \draw[braceArr, fill=gray!5] (1.7, 1.3) rectangle (11.3, -1.8);
+                    \node[font=\bfseries\small, color=black] at (6.5, 1.65) {Крок $i = 0, 1, \ldots, \texttt{layers}{-}1$};
+
+                    % --- ВХІД ---
+                    \node[io] (in) at (0, 0) {\textbf{Вхід} $x$\\$(B,\,L,\,D)$};
+
+                    % --- КРОК i ---
+                    \node[norm]   (ln)  at (3.5, 0)   {\textbf{LayerNorm$_i$}\\$D$};
+                    \node[shared] (mb)  at (7.2, 0)   {\textbf{Mamba Block}\\(спільний, $\lfloor i/k \rfloor$)};
+                    \node[add]    (add) at (10.5, 0)  {$+$};
+
+                    % --- ВИХІД ---
+                    \node[io] (out) at (13.5, 0) {\textbf{Вихід} $x$\\$(B,\,L,\,D)$};
+
+                    % --- Стрілки прямого проходу ---
+                    \draw[arr] (in)  -- (ln);
+                    \draw[arr] (ln)  -- (mb);
+                    \draw[arr] (mb)  -- (add);
+                    \draw[arr] (add) -- (out);
+
+                    % --- Residual skip ---
+                    \draw[arr, rounded corners=6pt]
+                        (in.south) -- ++(0, -0.5) -- node[above, font=\scriptsize, text=black] {residual} ++(10.5,0) -- (add.south);
+
+                    % --- Пул спільних блоків ---
+                    \node[font=\small\bfseries, color=black] at (7.15, -3.25) {\textit{Пул спільних блоків (\texttt{blocks} = 2)}};
+                    \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b0) at (6, -2.5) {Mamba$_0$};
+                    \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b1) at (8.25, -2.5) {Mamba$_1$};
+
+                    % --- Формула індексу ---
+                    \node[above, font=\scriptsize, color=green!50!black, align=left] at (mb.north) {$\text{block idx} = \min\!\left(\left\lfloor\frac{i}{\lfloor \text{Layers}/\text{Blocks} \rfloor}\right\rfloor,\, \text{Blocks}{-}1\right)$};
+
+                    \draw[arr, dashed, color=gray, rounded corners=4pt] (b0.north) -- ++(0, 0.5) -- (mb.south);
+                    \draw[arr, dashed, color=gray, rounded corners=4pt] (b1.north) -- ++(0, 0.5) -- (mb.south);
+
+                    % --- LayerNorm пул ---
+                    \node[io, minimum width=2.6cm, minimum height=0.75cm, font=\footnotesize] (lns) at (2, -2.5) {LayerNorm$_0 \ldots$ LayerNorm$_5$};
+                    \node[font=\scriptsize, color=gray!80!black, align=center] at (2, -3.25) {(унікальні, \texttt{layers} = 6)};
+                    \draw[arr, dashed, color=gray, rounded corners=4pt] (lns.north) -- ++(0, 0.5) -- (ln.south);
+
+                \end{tikzpicture}%
+                }
+                \caption{Внутрішня архітектура та механізм розділення ваг у блоці Shared Mamba}
+                \label{fig:shared_mamba}
+            \end{figure}
+
+            Використання глибоких послідовностей Mamba-блоків вимагає значного обсягу відеопам'яті графічного процесора.
+            Для оптимізації апаратного споживання без втрати генеративної здатності мережі імплементовано механізм спільного використання ваг, структурну логіку якого зображено на рис.~\ref{fig:shared_mamba}.
+
+            Замість ініціалізації $L$ унікальних блоків Mamba, модель створює лише обмежений фізичний пул з $K$ блоків (де $K < L$).
+            Під час прямого проходу шари послідовно перевикористовують ці фізичні блоки згідно з математичним індексом:
+            \begin{equation*}
+                \mathrm{idx} = \min\left(\left\lfloor \frac{i}{\lfloor L / K \rfloor} \right\rfloor, K - 1\right), \quad \text{де } i \in [0, L-1]
+            \end{equation*}
+            Водночас, шари пакетної нормалізації (\texttt{LayerNorm}), які передують кожному блоку, залишаються унікальними для кожного кроку $i$.
+            Такий підхід дозволяє моделі проєктувати ознаки в різні підпростори та успішно адаптуватися до різних рівнів абстракції попри спільні вагові матриці $A, B, C, D$ всередині самих блоків простору станів.
+
+        \subsection{Формулювання функцій втрат}
+            Процес оптимізації гібридної мережі керується складеною цільовою функцією втрат, яка балансує піксельну точність відтворення кольору, суворе дотримання підказок користувача та візуальний, перцептивний, реалізм згенерованого зображення. 
+            
+            Загальна функція втрат $\mathcal{L}_{\mathrm{total}}$ формується як зважена сума трьох незалежних компонентів:
+            \begin{equation*}
+                \mathcal{L}_{\mathrm{total}} = \lambda_{\mathrm{L1}} \mathcal{L}_{\mathrm{L1}} + \lambda_{\mathrm{hint}} \mathcal{L}_{\mathrm{hint}} + \lambda_{\mathrm{LPIPS}} \mathcal{L}_{\mathrm{LPIPS}}
+            \end{equation*}
+            де $\lambda_{\mathrm{L1}}, \lambda_{\mathrm{hint}}, \lambda_{\mathrm{LPIPS}}$ --- відповідні вагові коефіцієнти, що задають пріоритет кожної метрики.
+
+            \textbf{1. Глобальна похибка кольоровості ($\mathcal{L}_{\mathrm{L1}}$)} \\
+            Базовою метрикою для оцінки правильності прогнозування каналів $a$ та $b$ обрано середню абсолютну похибку (Mean Absolute Error). На відміну від середньоквадратичної похибки ($\mathrm{MSE}$), яка схильна до генерації тьмяних та усереднених кольорів через надмірне штрафування значних відхилень, $\mathcal{L}_{\mathrm{L1}}$ стимулює модель до створення більш насичених результатів. Похибка обчислюється по всьому простору зображення між згенерованими $\hat{Y} = (\hat{a}, \hat{b})$ та істинними $Y = (a, b)$ каналами:
+            \begin{equation*}
+                \mathcal{L}_{\mathrm{L1}} = \frac{1}{N} \sum_{i=1}^{N} | Y_i - \hat{Y}_i |
+            \end{equation*}
+
+            \textbf{2. Штраф за ігнорування підказок ($\mathcal{L}_{\mathrm{hint}}$)} \\
+            Для забезпечення жорсткої реакції моделі на взаємодію з користувачем вводиться спеціалізований штраф, який обчислюється виключно в тих пікселях, де маска підказок $M$ є активною. Щоб запобігти дисбалансу градієнтів між зображеннями з різною кількістю підказок, похибка нормалізується на фактичну кількість пікселів підказки у конкретному зображенні (з додаванням константи $\epsilon = 10^{-8}$ для уникнення ділення на нуль):
+            \begin{equation*}
+                \mathcal{L}_{\mathrm{hint}} = \frac{1}{\max\left(\epsilon, \sum M_i\right)} \sum_{i=1}^{N} M_i \cdot | Y_i - \hat{Y}_i |
+            \end{equation*}
+            Цей компонент змушує нейромережу ставити найвищий пріоритет на бездоганне поширення цільового кольору саме з тих точок, які визначив користувач.
+
+            \textbf{3. Перцептивна похибка ($\mathcal{L}_{\mathrm{LPIPS}}$)} \\
+            Оскільки піксельні метрики (такі як $\mathrm{L1}$) часто не корелюють із суб'єктивним сприйняттям якості зображення людиною, до конвеєра навчання інтегровано перцептивну похибку $\mathrm{LPIPS}$ (Learned Perceptual Image Patch Similarity). Вона обчислює відстань між зображеннями у просторі високорівневих ознак попередньо навченої згорткової мережі (у даній системі --- архітектури VGG).
+
+            Оскільки VGG-екстрактор натренований на зображеннях у колірному просторі RGB, математичний граф обчислення похибки включає диференційовне перетворення колірних просторів <<на льоту>>. Спочатку нормалізовані канали денормалізуються до своїх фізичних масштабів (канал $L$ масштабується коефіцієнтом $50.0$, канали $a, b$ --- коефіцієнтом $110.0$). Далі відновлений тензор $\mathrm{CIELAB}$ конвертується у простір $\mathrm{RGB}$, обмежується у діапазоні $[0, 1]$ та нормалізується до $[-1, 1]$:
+            \begin{equation*}
+                \mathcal{L}_{\mathrm{LPIPS}} = \mathrm{VGG}\left( \mathrm{Norm}(\mathrm{LABtoRGB}(L, \hat{a}, \hat{b})), \, \mathrm{Norm}(\mathrm{LABtoRGB}(L, a, b)) \right)
+            \end{equation*}
+            Завдяки використанню цієї функції втрат гібридна модель вчиться генерувати не лише математично близькі, але й візуально реалістичні та структуровані текстури без ефекту неприродних градієнтних переходів.
+
         % Що сюди пишемо:
         % 1. Анатомія MambaWrapper та DoubleConv (можна вставити твій код або його табличний опис).
         % 2. Математика bidirectional сканування (обґрунтування твого torch.flip).
@@ -136,6 +332,8 @@
 %     \label{fig:arch_general}
 % \end{figure}
 
+    \section{Застосунок для звичайних користувачів}
+
 % \section{Формулювання задачі інтерактивної колоризації}
 
 % Класична задача безумовної колоризації має фундаментальну проблему — надмірну невизначеність. Одному чорно-білому зображенню (канал яскравості $L$ у просторі CIELAB) може відповідати нескінченна кількість правдоподібних кольорових варіацій (канали $a$ та $b$). Використання лише базових функцій втрат, таких як середньоквадратична похибка, змушує модель усереднювати всі можливі кольори, що призводить до генерації тьмяних зображень (відомий як ефект «сепії»).
@@ -155,115 +353,10 @@
 % \subsection{Проєктування енкодера та декодера (DoubleConv)}
 % Для вилучення просторових ознак та поступового зниження роздільної здатності використовується згортковий енкодер, що складається з трьох рівнів. Кожен рівень побудований на базі абстракції \textit{DoubleConv}, структурну схему якої зображено на рис.~\ref{fig:doubleconv}.
 
-% \begin{figure}[ht]
-%     \centering
-%     \resizebox{0.9\textwidth}{!}{%
-%     \begin{tikzpicture}[
-%         scale=0.9, transform shape,
-%         layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.6cm, minimum height=1cm},
-%         conv/.style={layer, fill=blue!10, draw=blue!40!black},
-%         bn/.style={layer, fill=orange!10, draw=orange!40!black},
-%         relu/.style={layer, fill=green!10, draw=green!40!black},
-%         io/.style={layer, fill=gray!10, draw=gray!40!black},
-%         arr/.style={->, thick, color=black, >=stealth},
-%         group_box/.style={draw, dashed, thick, color=gray, rounded corners=5pt}
-%     ]
-%         % --- ВХІД ---
-%         \node[io] (in) at (-1.5, 0) {\textbf{Вхід $x$}\\$C_{in} \times H \times W$};
-%         % --- РЯДОК 1 ---
-%         \node[conv] (c1) at (2.5, 0) {\textbf{Conv2d} ($3\times3$)\\$C_{in} \to C_{out}$};
-%         \node[bn] (b1) at (6.2, 0) {\textbf{BatchNorm2d}\\$C_{out}$};
-%         \node[relu] (r1) at (9.9, 0) {\textbf{ReLU}};
-%         % --- РЯДОК 2 ---
-%         \node[conv] (c2) at (2.5, -2.5) {\textbf{Conv2d} ($3\times3$)\\$C_{out} \to C_{out}$};
-%         \node[bn] (b2) at (6.2, -2.5) {\textbf{BatchNorm2d}\\$C_{out}$};
-%         \node[relu] (r2) at (9.9, -2.5) {\textbf{ReLU}};
-%         % --- ВИХІД ---
-%         \node[io] (out) at (13.8, -2.5) {\textbf{Вихід $y$}\\$C_{out} \times H \times W$};
-        
-%         % --- СТРІЛКИ ДАНИХ ---
-%         \draw[arr] (in) -- (c1);
-%         \draw[arr] (c1) -- (b1);
-%         \draw[arr] (b1) -- (r1);
-%         \draw[arr, rounded corners=6pt] (r1.south) -- ++(0, -0.75) -| (c2.north);
-%         \draw[arr] (c2) -- (b2);
-%         \draw[arr] (b2) -- (r2);
-%         \draw[arr] (r2) -- (out);
-        
-%         % --- РАМКА НАВКОЛО SEQUENTIAL ---
-%         \draw[group_box] (0.8, 1.2) rectangle (11.6, -3.5);
-%         \node[color=black, font=\bfseries] at (6.2, 1.5) {DoubleConv (nn.Sequential)};
-%     \end{tikzpicture}%
-%     }
-%     \caption{Архітектура блоку DoubleConv для енкодера та декодера}
-%     \label{fig:doubleconv}
-% \end{figure}
-
 % Блок DoubleConv включає послідовне виконання згорткового шару $3 \times 3$, шару батч-нормалізації (BatchNorm2d) та активації ReLU. Після кожного блоку DoubleConv в енкодері застосовується операція \textit{Max Pooling} ($2 \times 2$), яка зменшує просторову розмірність карт ознак у два рази. Декодер працює симетрично. Важливим елементом є використання наскрізних зв'язків (Skip Connections), які прокидають карти ознак з енкодера безпосередньо в декодер, обминаючи центральний блок для збереження дрібних деталей.
 
 % \subsection{Інтеграція двонаправленого блоку Mamba}
 % Основна інновація розробленої системи лежить у центральному вузлі архітектури. Ознаки, отримані після третього рівня енкодера розгортаються у послідовність (Flatten) і передаються до блоку простору станів. Його будову деталізовано на рис.~\ref{fig:shared_mamba}.
-
-% \begin{figure}[ht]
-%     \centering
-%     \resizebox{0.9\textwidth}{!}{%
-%     \begin{tikzpicture}[
-%         scale=0.9, transform shape,
-%         layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.8cm, minimum height=1cm},
-%         mamba/.style={layer, fill=green!10, draw=green!60!black},
-%         norm/.style={layer, fill=orange!10, draw=orange!60!black},
-%         io/.style={layer, fill=gray!10, draw=gray!60!black},
-%         add/.style={circle, draw=black, thick, fill=gray!20, inner sep=2pt, font=\small, text=black},
-%         arr/.style={->, thick, >=stealth, color=black},
-%         braceArr/.style={draw, dashed, thick, color=gray, rounded corners=5pt},
-%         shared/.style={layer, fill=green!15, draw=green!60!black, minimum width=3.2cm}
-%     ]
-%         % --- Рамка одного кроку ---
-%         \draw[braceArr, fill=gray!5] (1.7, 1.3) rectangle (11.3, -1.8);
-%         \node[font=\bfseries\small, color=black] at (6.5, 1.65) {Крок $i = 0, 1, \ldots, \texttt{layers}{-}1$};
-
-%         % --- ВХІД ---
-%         \node[io] (in) at (0, 0) {\textbf{Вхід} $x$\\$(B,\,L,\,D)$};
-
-%         % --- КРОК i ---
-%         \node[norm]   (ln)  at (3.5, 0)   {\textbf{LayerNorm$_i$}\\$D$};
-%         \node[shared] (mb)  at (7.2, 0)   {\textbf{Mamba Block}\\(спільний, $\lfloor i/k \rfloor$)};
-%         \node[add]    (add) at (10.5, 0)  {$+$};
-
-%         % --- ВИХІД ---
-%         \node[io] (out) at (13.5, 0) {\textbf{Вихід} $x$\\$(B,\,L,\,D)$};
-
-%         % --- Стрілки прямого проходу ---
-%         \draw[arr] (in)  -- (ln);
-%         \draw[arr] (ln)  -- (mb);
-%         \draw[arr] (mb)  -- (add);
-%         \draw[arr] (add) -- (out);
-
-%         % --- Residual skip ---
-%         \draw[arr, rounded corners=6pt]
-%             (in.south) -- ++(0, -0.5) -- node[above, font=\scriptsize, text=black] {residual} ++(10.5,0) -- (add.south);
-
-%         % --- Пул спільних блоків ---
-%         \node[font=\small\bfseries, color=black] at (7.15, -3.25) {\textit{Пул спільних блоків (\texttt{blocks} = 2)}};
-%         \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b0) at (6, -2.5) {Mamba$_0$};
-%         \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b1) at (8.25, -2.5) {Mamba$_1$};
-
-%         % --- Формула індексу ---
-%         \node[above, font=\scriptsize, color=green!50!black, align=left] at (mb.north) {$\text{block idx} = \min\!\left(\left\lfloor\frac{i}{\lfloor \text{Layers}/\text{Blocks} \rfloor}\right\rfloor,\, \text{Blocks}{-}1\right)$};
-
-%         \draw[arr, dashed, color=gray, rounded corners=4pt] (b0.north) -- ++(0, 0.5) -- (mb.south);
-%         \draw[arr, dashed, color=gray, rounded corners=4pt] (b1.north) -- ++(0, 0.5) -- (mb.south);
-
-%         % --- LayerNorm пул ---
-%         \node[io, minimum width=2.6cm, minimum height=0.75cm, font=\footnotesize] (lns) at (2, -2.5) {LayerNorm$_0 \ldots$ LayerNorm$_5$};
-%         \node[font=\scriptsize, color=gray!80!black, align=center] at (2, -3.25) {(унікальні, \texttt{layers} = 6)};
-%         \draw[arr, dashed, color=gray, rounded corners=4pt] (lns.north) -- ++(0, 0.5) -- (ln.south);
-
-%     \end{tikzpicture}%
-%     }
-%     \caption{Внутрішня архітектура та механізм розділення ваг у блоці Shared Mamba}
-%     \label{fig:shared_mamba}
-% \end{figure}
 
 % Базовий механізм Mamba є однонаправленим. Для подолання просторової асиметрії розроблено модуль \textbf{Bidirectional Shared Mamba}, який сканує послідовність у природному та інвертованому напрямках, використовуючи один і той самий набір параметрів із пулу блоків. Результати прямого та зворотного сканування додаються та усереднюються.
 
