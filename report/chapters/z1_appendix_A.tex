@@ -1,16 +1,446 @@
-%!TEX root = ../thesis.tex
-\append{Тексти програм}
-% \appendix
-% \chapter{Тексти програм}
+%!TEX root = ../report.tex
+\append{Фрагменти вихідного коду програми}
 \label{appendix:A}
 
-Тексти інструментальних програм для проведення експериментальних досліджень необхідно 
-виносити у додатки.
+У цьому додатку наведено фрагменти вихідного коду найбільш критичних модулів розробленої системи інтерактивної колоризації. Повний вихідний код проєкту, включно зі скриптами для навчання, валідації та графічним інтерфейсом користувача (GUI), доступний у публічному репозиторії за посиланням: \url{https://github.com/твій-логін/твій-репозиторій}.
 
-\section{Програма 1}
+% Налаштування красивого відображення коду для Python
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\bfseries\color{blue!70!black},
+    commentstyle=\itshape\color{green!50!black},
+    stringstyle=\color{orange!70!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=10pt,
+    backgroundcolor=\color{gray!5},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    rulecolor=\color{gray!40},
+    tabsize=4,
+    captionpos=t,
+    breaklines=true,
+    breakatwhitespace=false,
+    title=\lstname,
+    escapeinside={(*@}{@*)}, % Дозволяє вставляти українські коментарі
+    extendedchars=true,
+    literate={і}{{\'i}}1 {ї}{{\"i}}1 {є}{{\'e}}1 {ґ}{{\`g}}1 {І}{{\'I}}1 {Ї}{{\"I}}1 {Є}{{\'E}}1 {Ґ}{{\`G}}1 {а}{{\cyra}}1 {б}{{\cyrb}}1 {в}{{\cyrv}}1 {г}{{\cyrg}}1 {д}{{\cyrd}}1 {е}{{\cyre}}1 {ж}{{\cyrzh}}1 {з}{{\cyrz}}1 {и}{{\cyri}}1 {й}{{\cyrishrt}}1 {к}{{\cyrk}}1 {л}{{\cyrl}}1 {м}{{\cyrm}}1 {н}{{\cyrn}}1 {о}{{\cyro}}1 {п}{{\cyrp}}1 {р}{{\cyrr}}1 {с}{{\cyrs}}1 {т}{{\cyrt}}1 {у}{{\cyru}}1 {ф}{{\cyrf}}1 {х}{{\cyrh}}1 {ц}{{\cyrc}}1 {ч}{{\cyrch}}1 {ш}{{\cyrsh}}1 {щ}{{\cyrshch}}1 {ь}{{\cyrsftsn}}1 {ю}{{\cyryu}}1 {я}{{\cyrya}}1
+}
 
-Зауважте, як змінилась нумерація.
+\section{Реалізація двонаправленого блоку Shared Mamba}
 
-\begin{theorem}
-Нумерація теорем та іншого також повинна змінитись.
-\end{theorem}
+Нижче наведено реалізацію основного архітектурного блоку Bi-Mamba, що використовує механізм розділення ваг для прямого та зворотного сканування послідовності ознак.
+\subsection{Допоміжні модулі}
+
+\begin{lstlisting}[caption={Клас модуля Shared Mamba (PyTorch)}]
+import torch.nn as nn
+from mamba_ssm import Mamba
+
+class MambaShared(nn.Module):
+    def __init__(self, d_model: int, d_state: int = 64, d_conv: int = 4, expand: int = 2, layers: int = 6, blocks: int = 2):
+        super().__init__()
+        self.layers = layers
+
+        self.blocks = nn.ModuleList([
+            Mamba(d_model=d_model, d_state=d_state, d_conv=d_conv, expand=expand) for _ in range(blocks)
+        ])
+
+        self.norms = nn.ModuleList([nn.LayerNorm(d_model) for _ in range(layers)])
+
+    def forward(self, x):
+        expected_val_range = self.layers // len(self.blocks)
+
+        for i in range(self.layers):
+            idx_block = min(i // expected_val_range, len(self.blocks) - 1)
+            x = self.blocks[idx_block](self.norms[i](x)) + x
+
+        return x
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Клас модуля DoubleConv (PyTorch)}]
+import torch
+import torch.nn as nn
+
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.conv(x)
+\end{lstlisting}
+
+\subsection{Основний модуль}
+\begin{lstlisting}[caption={Клас модуля MambaWrapper (PyTorch)}]
+import torch
+import torch.nn as nn
+
+from colorization_engine.models.util_models import MambaShared, BaseColorizer
+from colorization_engine.factory.registry import register_model
+
+@register_model("mamba")
+class MambaWrapper(BaseColorizer):
+    def __init__(self, d_model: int = 256, layers: int = 6, blocks: int = 2):
+        super().__init__()
+        
+        # --- ENCODER ---
+        # Вхід: 1 канал L + 2 канали ab (підказки) + 1 канал маски = 4 канали
+        self.enc1 = DoubleConv(4, 64) 
+        self.pool1 = nn.Conv2d(64, 64, kernel_size=4, stride=2, padding=1) # H/2
+
+        self.enc2 = DoubleConv(64, 128)
+        self.pool2 = nn.Conv2d(128, 128, kernel_size=4, stride=2, padding=1) # H/4
+        
+        self.enc3 = DoubleConv(128, d_model)
+        self.pool3 = nn.Conv2d(d_model, d_model, kernel_size=4, stride=2, padding=1) # H/8
+
+        # --- Mamba ---
+        self.mamba = MambaShared(d_model=d_model, layers=layers, blocks=blocks)
+
+        # --- DECODER ---
+        self.up3 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
+        self.dec3 = DoubleConv(d_model + d_model, 128) # Concat enc3
+
+        self.up2 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
+        self.dec2 = DoubleConv(128 + 128, 64) # Concat enc2
+
+        self.up1 = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
+        self.dec1 = DoubleConv(64 + 64, 64) # Concat enc1
+
+        # --- FINAL LAYER ---
+        self.final_conv = nn.Sequential(
+            nn.Conv2d(64, 2, kernel_size=1),
+            nn.Tanh() # [-1, 1]
+        )
+
+    def forward(self, l_norm: torch.Tensor, hints: torch.Tensor | None = None) -> torch.Tensor:
+        """
+        l_norm: (B, 1, H, W) 
+        hints: (B, 3, H, W) - канали [a, b, mask], згенеровані _receive_hints
+        """
+        batch_size, _, height, width = l_norm.shape
+        device = l_norm.device
+
+        if hints is None:
+            hints = torch.zeros((batch_size, 3, height, width), device=device)
+
+        x_in = torch.cat([l_norm, hints], dim=1)
+        
+        # --- ENCODER FORWARD ---
+        feat1 = self.enc1(x_in)       # (B, 64, H, W)
+        p1 = self.pool1(feat1)        # (B, 64, H/2, W/2)
+        
+        feat2 = self.enc2(p1)         # (B, 128, H/2, W/2)
+        p2 = self.pool2(feat2)        # (B, 128, H/4, W/4)
+        
+        feat3 = self.enc3(p2)         # (B, 256, H/4, W/4)
+        p3 = self.pool3(feat3)        # (B, 256, H/8, W/8)
+        
+        # --- MAMBA FORWARD ---
+        b, c, h, w = p3.shape
+        x_flat = p3.view(b, c, h * w).permute(0, 2, 1).contiguous() # [B, L, D]
+    
+        x_fwd = self.mamba(x_flat)
+        x_flat_rev = torch.flip(x_flat, dims=[1]) # Перевертаємо послідовність (справа наліво, знизу вверх)
+        x_rev = self.mamba(x_flat_rev)
+        x_rev = torch.flip(x_rev, dims=[1])
+
+        x_mamba = (x_fwd + x_rev) / 2.0
+
+        x_res = x_mamba.permute(0, 2, 1).contiguous().view(b, c, h, w)
+        
+        # --- DECODER FORWARD ---
+        d3 = self.up3(x_res)
+        d3 = self.dec3(torch.cat([d3, feat3], dim=1)) # Злиття Mamba + локальний контекст H/4
+        
+        d2 = self.up2(d3)
+        d2 = self.dec2(torch.cat([d2, feat2], dim=1)) # Злиття H/2
+        
+        d1 = self.up1(d2)
+        d1 = self.dec1(torch.cat([d1, feat1], dim=1)) # Злиття H
+        
+        ab_channels = self.final_conv(d1)
+        
+        return ab_channels
+\end{lstlisting}
+
+\section{Генерація Гауссівських підказок}
+
+Наступний лістинг демонструє механізм перетворення точкових кліків користувача на м'які розподіли кольору під час формування вхідного тензора.
+
+\begin{lstlisting}[caption={ПідФункція генерації Гауссівських підказок}]
+import torch
+
+def get_gaussian_patch_box(size: int, sigma: float | None = None, device: str | torch.device = 'cpu') -> torch.Tensor:
+    """Generate 2D Gauss kernel with max 1.0"""
+    if sigma is None:
+        sigma = size / 4.0
+    coords = torch.arange(size, dtype=torch.float32, device=device) - size // 2
+    g = torch.exp(-(coords**2) / (2 * sigma**2))
+    g = g / g.max()
+    return g.view(-1, 1) * g.view(1, -1)
+
+def get_gaussian_patch_circle(size: int, sigma: float | None = None, device: str | torch.device = 'cpu') -> torch.Tensor:
+    """Generate 2D Radial Gauss kernel with max 1.0 and strict circular bounds"""
+    if sigma is None:
+        sigma = size / 4.0
+
+    pad = size // 2
+    coords = torch.arange(size, dtype=torch.float32, device=device) - pad
+
+    Y, X = torch.meshgrid(coords, coords, indexing="ij")
+    dist_sq = X**2 + Y**2
+
+    patch = torch.exp(-dist_sq / (2 * sigma**2))
+    edge_val = torch.exp(torch.tensor(-(pad**2) / (2 * sigma**2), device=device))
+    patch = patch - edge_val
+
+    patch[dist_sq > pad**2] = 0.0
+    patch = patch.clamp(min=0.0)
+
+    patch = patch / patch.max()
+    
+    return patch
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Функція генерації Гауссівських підказок}]
+import torch
+from albumentations import Compose
+import cv2
+import numpy as np
+
+from colorization_engine.utils.saliency import FastSaliencySampler
+from colorization_engine.utils.patches import get_gaussian_patch_circle as get_gaussian_patch
+
+saliency_sampler = FastSaliencySampler(blur_kernel_size=15, uniform_prior=0.15)
+
+VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.webp'}
+
+def _basic_prepare(path: str, color_code: int):
+    """Reads image from path, converts it to needed color system and returns image"""
+    _img = cv2.imread(path, cv2.IMREAD_COLOR)
+
+    if _img is None:
+        raise ValueError(f"Can't read: {path}")
+
+    _img = cv2.cvtColor(_img, color_code)
+    return _img
+
+def _apply_transform(transform: Compose | None, input: np.ndarray, target: np.ndarray | None = None):
+    """Applies tranform if exists and returns dict of input, hints and target"""
+    if transform is None:
+        return {"input": input, "target": target}
+
+    transformed = transform(image=input, target=target)
+
+    return {"input": transformed['image'], "target": target if target is None else transformed['target']}
+
+def _receive_hints(ab_tensor: torch.Tensor, l_tensor: torch.Tensor, min_hint_size: int = 2, max_hint_size: int = 16, num_hints_val: int = 3, patch_size_val: int = 15, training: bool = True) -> torch.Tensor:
+    _, h, w = ab_tensor.shape
+    device = ab_tensor.device
+    mask = torch.zeros((1, h, w), dtype=torch.float32, device=device)
+
+    if training:
+        dist = torch.distributions.Geometric(probs=torch.tensor([0.2]))
+        num_hints = int(dist.sample().item())
+
+        points = saliency_sampler.sample_points(l_tensor, num_hints * 3) if num_hints > 0 else []
+
+        if points and num_hints > 0:
+            placed_points = []
+            min_dist_sq = (max_hint_size * 1.5) ** 2 
+
+            for y, x in points:
+                too_close = any((y - py)**2 + (x - px)**2 < min_dist_sq for py, px in placed_points)
+                if too_close:
+                    continue
+
+                placed_points.append((y, x))
+
+                pad = torch.randint(min_hint_size, max_hint_size, (1,), device=device).item()
+                patch_size = pad * 2 + 1
+                base_patch = get_gaussian_patch(patch_size, device=device) # type: ignore
+
+                intensity = torch.rand(1, device=device).item() * 0.8 + 0.2
+                patch = base_patch * intensity
+
+                y1, y2 = max(0, y - pad), min(h, y + pad + 1)
+                x1, x2 = max(0, x - pad), min(w, x + pad + 1)
+
+                py1, py2 = max(0, pad - y), patch_size - max(0, y + pad + 1 - h)
+                px1, px2 = max(0, pad - x), patch_size - max(0, x + pad + 1 - w)
+
+                mask[0, y1:y2, x1:x2] = torch.maximum(mask[0, y1:y2, x1:x2], patch[py1:py2, px1:px2])
+
+                if len(placed_points) >= num_hints:
+                    break
+
+    else:
+        pad = patch_size_val // 2
+        inhibition_radius = patch_size_val * 2 
+
+        base_patch = get_gaussian_patch(size=patch_size_val, device=device)
+
+        mag = ab_tensor.pow(2).sum(dim=0) 
+
+        for _ in range(num_hints_val):
+            idx = mag.argmax().item()
+            y = idx // w
+            x = idx % w
+
+            y1, y2 = max(0, y - pad), min(h, y + pad + 1)
+            x1, x2 = max(0, x - pad), min(w, x + pad + 1)
+            
+            py1, py2 = max(0, pad - y), patch_size_val - max(0, y + pad + 1 - h)
+            px1, px2 = max(0, pad - x), patch_size_val - max(0, x + pad + 1 - w)
+
+            mask[0, y1:y2, x1:x2] = torch.maximum(mask[0, y1:y2, x1:x2], base_patch[py1:py2, px1:px2])
+
+            iy1, iy2 = max(0, y - inhibition_radius), min(h, y + inhibition_radius)
+            ix1, ix2 = max(0, x - inhibition_radius), min(w, x + inhibition_radius)
+            mag[iy1:iy2, ix1:ix2] = -1.0
+
+    hint_ab = ab_tensor * mask
+    hints = torch.cat([hint_ab, mask], dim=0)
+    return hints
+\end{lstlisting}
+
+\section{Як виглядає сам даталоадер}
+\begin{lstlisting}[caption={Даталоадер}]
+# colorization-engine/src/colorization_engine/data/datasets/single.py
+import cv2
+from pathlib import Path
+from torch.utils.data import Dataset
+
+from colorization_engine.data.datasets.preparements import VALID_EXTENSIONS, _basic_prepare, _apply_transform, _receive_hints
+from colorization_engine.utils.color_space import rgb_to_lab, normalize_l, normalize_ab
+
+
+class SingleTargetFolderDataset(Dataset):
+    """
+    Dataset for already existing only targets
+    """
+    def __init__(self, dir_root: str, min_hint_size: int = 2, max_hint_size: int = 16, num_hints_val: int = 3, patch_size_val: int = 15, transform = None, training: bool = False):
+        self.dir_root = Path(dir_root)
+
+        self.min_hint_size = min_hint_size
+        self.max_hint_size = max_hint_size
+        self.num_hints_val = num_hints_val
+        self.patch_size_val = patch_size_val
+
+        self.transform = transform
+        self.training = training
+        
+        self.images = [
+            f for f in self.dir_root.rglob("*")
+            if f.is_file() and f.suffix.lower() in VALID_EXTENSIONS
+        ]
+
+        if not len(self):
+            raise RuntimeError(f"No images in {self.dir_root}")
+
+        self.images.sort(key=lambda x: str(x))
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, index):
+        path = self.images[index]
+
+        image_target = _basic_prepare(path, cv2.COLOR_BGR2RGB)
+
+        transform_dict = _apply_transform(self.transform, input=image_target)
+
+        image_input = transform_dict["input"]
+
+        image_lab = rgb_to_lab(image_input)
+        l_tensor = normalize_l(image_lab[:, :, 0])
+        ab_tensor = normalize_ab(image_lab[:, :, 1:3])
+
+        hints_tensor = _receive_hints(ab_tensor, l_tensor, min_hint_size=self.min_hint_size, max_hint_size=self.max_hint_size, num_hints_val=self.num_hints_val, patch_size_val=self.patch_size_val, training=self.training)
+
+        return {
+            "input": l_tensor,    # [1, 256, 256]
+            "hints": hints_tensor,  # [3, 256, 256] -> (a, b, mask)
+            "target": ab_tensor   # [2, 256, 256]
+        }
+\end{lstlisting}
+
+\section{Комбінована функція втрат (Colorization Loss)}
+
+Наступний лістинг демонструє кастомну функцію втрат, яка оптимізує модель одночасно за трьома критеріями: попіксельна точність (L1), перцептивна реалістичність (LPIPS) та точність виконання інтерактивних підказок користувача.
+
+\begin{lstlisting}[caption={Реалізація гібридної функції втрат (PyTorch)}]
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchmetrics.image import LearnedPerceptualImagePatchSimilarity
+
+from colorization_engine.loss import BaseLoss
+from colorization_engine.factory.registry import register_loss
+import kornia
+
+
+@register_loss("colorization")
+class ColorizationLoss(BaseLoss):
+    def __init__(self, lpips_weight: float, l1_weight: float, hints_weight: float):
+        super().__init__()
+        self.lpips_weight = lpips_weight
+        self.l1_weight = l1_weight
+        self.hints_weight = hints_weight
+
+        self.l1_loss = nn.L1Loss()
+
+        _lpips_module = LearnedPerceptualImagePatchSimilarity(net_type="vgg", normalize=True)
+        self.lpips_net = _lpips_module.net
+        self.lpips_net.eval()
+        self.lpips_net.requires_grad_(False)
+
+    def forward(self, pred: torch.Tensor, target: torch.Tensor, l_channel: torch.Tensor, hint_mask: torch.Tensor | None = None) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        loss_l1 = self.l1_loss(pred, target) * self.l1_weight
+
+        loss_hints = torch.zeros_like(loss_l1)
+        if hint_mask is not None and hint_mask.any():
+            loss_hints_raw = F.l1_loss(pred * hint_mask, target * hint_mask, reduction='none')
+
+            loss_hints_per_image = loss_hints_raw.sum(dim=[1, 2, 3])
+            hint_pixels_per_image = hint_mask.sum(dim=[1, 2, 3]).clamp(min=1e-8)
+
+            loss_hints_avg = loss_hints_per_image / hint_pixels_per_image
+            loss_hints = loss_hints_avg.mean() * self.hints_weight
+
+        l_unnorm = (l_channel + 1.0) * 50.0
+        ab_pred_unnorm = pred * 110.0
+        ab_target_unnorm = target * 110.0
+
+        lab_pred = torch.cat([l_unnorm, ab_pred_unnorm], dim=1)
+        lab_target = torch.cat([l_unnorm, ab_target_unnorm], dim=1)
+
+        rgb_pred = kornia.color.lab_to_rgb(lab_pred).clamp(0.0, 1.0)
+        rgb_target = kornia.color.lab_to_rgb(lab_target).clamp(0.0, 1.0)
+
+        rgb_pred_norm = rgb_pred * 2.0 - 1.0
+        rgb_target_norm = rgb_target * 2.0 - 1.0
+
+        loss_lpips = self.lpips_net(rgb_pred_norm, rgb_target_norm).mean() * self.lpips_weight
+
+        total_loss = loss_l1 + loss_hints + loss_lpips
+
+        return total_loss, {
+            "loss_total": total_loss.detach(),
+            "loss_l1":  loss_l1.detach(),
+            "loss_hints": loss_hints.detach(),
+            "loss_lpips": loss_lpips.detach(),
+        }
+\end{lstlisting}

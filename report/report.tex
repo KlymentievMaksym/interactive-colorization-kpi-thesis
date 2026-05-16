@@ -1,7 +1,7 @@
 % !TEX program = lualatex
-%% !BIB program = biber
+% !BIB program = biber
 
-\documentclass[14pt]{utils/bachelor_thesis}
+\documentclass{utils/bachelor_thesis}
 
 \input{utils/packages}
 
@@ -10,24 +10,42 @@
 \input{utils/data}
 \input{utils/redefinitions}
 
-\frenchspacing
-\onehalfspacing
+% \frenchspacing
+% \onehalfspacing
 
 \begin{document}
     \pagestyle{plain}
+    \setfontsize{14pt}
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
 
     \input{chapters/title}
+
+    \frenchspacing
+    \doublespacing          % інтервал "1,5" між рядками, тепер навічно
+    \setfontsize{14}
 
     \tableofcontents
     \cleardoublepage
 
     % \input{chapters/shortings}
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
 
     \input{chapters/introduction}
 
-    \foreach \x in {1, 2, ..., 3} {
-        \input{chapters/chapter_0\x}
-    }
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
+
+    \input{chapters/chapter_01}
+    \input{chapters/chapter_02}
+    \input{chapters/chapter_03}
+    % \foreach \x in {1, 2, ..., 3} {
+    %     \input{chapters/chapter_0\x}
+    % }
 
     % \input{chapters/conclusions}
 
@@ -45,6 +63,6 @@
     % Якщо ви маєте меншу або більшу кількість додатків, модифікуйте наступні 
     % рядки відповідним чином
     % Якщо ви не маєте додатків, просто закоментуйте наступні рядки
-    % \input{chapters/z1_appendix_A}
+    \input{chapters/z1_appendix_A}
     % \input{chapters/z2_appendix_B}
 \end{document}

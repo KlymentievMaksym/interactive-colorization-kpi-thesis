@@ -1,5 +1,4 @@
-% !TEX root = ../report.tex
-
+%!TEX root = ../thesis.tex
 % ********** Клас для написання пояснювальної записки **********
 % *********  до атестаційної роботи ступеня бакалавра **********
 % Розроблено з милиць, соломи та паличок Сергієм Яковлєвим
@@ -42,7 +41,7 @@
 % \RequirePackage{mathtext}                               % потрібні символи в режимі математичних формул
 
 % % пакети для форматування відступів та полів
-\RequirePackage[includehead, headsep=0pt, footskip=4pt, top=2cm, bottom=2cm, left=2.5cm, right=1cm]{geometry} 
+\RequirePackage[includehead, headsep=0pt, footskip=0pt, top=2cm, bottom=2cm, left=3cm, right=1.5cm]{geometry} 
 %                                                         % задаємо поля сторінки
 
 \RequirePackage{indentfirst}                            % відступ для першого рядка абзацу
@@ -134,28 +133,12 @@
 \setlist[enumerate,2]{label=\asbuk*),  partopsep=0pt, parsep=0pt, topsep=0pt, itemsep=0pt, itemindent=2.6cm, leftmargin=0pt}
 
 % заголовки таблиць, рисунків
-% \DeclareCaptionFormat{customtable}{\hfill #1#2\\ \centering #3}
-\DeclareCaptionFormat{customtable}{%
-    \makebox[\linewidth][r]{#1#2}%
-    \par
-    \centering #3%
-}
-% \DeclareCaptionLabelFormat{tablecap}{\hspace*{1.25cm}Таблиця #2}        % формат за промовчанням "Табл." не влаштовує
-\DeclareCaptionLabelFormat{tablecap}{Таблиця #2}        % формат за промовчанням "Табл." не влаштовує
-\DeclareCaptionLabelFormat{figurecap}{Рис.~#2}                       % формат за промовчанням "Рис." не влаштовує Рисунок 
+\DeclareCaptionLabelFormat{tablecap}{\hspace*{1.25cm}Таблиця #2}        % формат за промовчанням "Табл." не влаштовує
+\DeclareCaptionLabelFormat{figurecap}{Рисунок #2}                       % формат за промовчанням "Рис." не влаштовує
 
 % \renewcommand{\thesubfigure}{\asbuk{subfigure}}
 
-% \captionsetup[table]{margin=0pt, singlelinecheck=false, labelfont=bf, textfont=normalfont, justification=justified, labelsep=endash, labelformat=tablecap, font = {Large, stretch = 1.5}} % формат для таблиць
-\captionsetup[table]{
-        format=customtable,
-        labelformat=tablecap,
-        labelsep=none,              % прибираємо тире, бо назва йде з нового рядка
-        font={normalsize, stretch=1.5}, % розмір 14pt (normalsize) за вимогами
-        labelfont=normalfont,
-        textfont=normalfont,
-        singlelinecheck=false       % вимикаємо однорядкову перевірку
-}
+\captionsetup[table]{margin=0pt, singlelinecheck=false, labelfont=bf, textfont=normalfont, justification=justified, labelsep=endash, labelformat=tablecap, font = {Large, stretch = 1.5}} % формат для таблиць
 \captionsetup[figure]{justification=centering, labelsep=endash, labelfont=bf, textfont=normalfont, labelformat=figurecap, font = {Large, stretch = 1.5}} % формат для рисунків
 %\captionsetup[lstlisting]{margin=0pt, format=listing, singlelinecheck=false, font = {stretch = 1.5}} % формат для лістингів
 
@@ -167,19 +150,18 @@
         \begingroup\centering
         \setlength{\LTpre}{-14pt}
         \setlength{\LTpost}{14pt}
-        \setlength{\LTcapwidth}{\textwidth}  % 0pt
+        \setlength{\LTcapwidth}{0pt}
         \begin{longtable}{#1}
                 \kill
                 \caption{#2}\label{#3}\\
                 #4
                 \endfirsthead
                 \kill
-                \captionsetup{format=plain, justification=raggedleft, singlelinecheck=false}%
-                \caption*{Продовження табл.~\thetable}\\  % таблиці 
-                #4
-                \endhead
-                \hline
-                \endfoot
+                \caption*{Продовження таблиці \thetable}\\
+                        #4
+                        \endhead
+                        \hline
+                        \endfoot
         }
         {%
                 \end{longtable}
@@ -254,42 +236,78 @@
 
 % хитра команда для створення додатків
 \newcounter{appendnum}
+
+% Макрос для безпечного отримання правильної літери додатка за ДСТУ
+% (Вилучено літери Ґ, Є, З, І, Ї, Й, О, Ч, Ь)
+\makeatletter
+\newcommand{\AsbukAppendix}[1]{\ifcase\value{#1}\or А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Ю\or Я\else ERROR\fi}
+\makeatother
+
 \newcommand{\append}[1]{
+        \stepcounter{appendnum}
         \setcounter{chapter}{0}
         \setcounter{figure}{0}
         \setcounter{table}{0}
         \setcounter{section}{0}
         \setcounter{subsection}{0}
+        \setcounter{equation}{0}
         \titleformat{\chapter}
                 {\centering\Large\bfseries\MakeUppercase}
                 {\hspace{1cm}\thechapter}
                 {0.5em}
                 {}
-        \chapter*{ДОДАТОК \Asbuk{appendnum}~~#1}
-        \addcontentsline{toc}{chapter}{Додаток \Asbuk{appendnum}\ #1}
+        \chapter*{ДОДАТОК \AsbukAppendix{appendnum}~~#1}
+        \addcontentsline{toc}{chapter}{Додаток \AsbukAppendix{appendnum}\ #1}
         \addvspace{-28pt}
         \preto\section{%
                 \ifnum\value{section}=0\addvspace{0pt}\fi%
         }
-        \renewcommand{\thefigure}{\Asbuk{appendnum}.\arabic{figure}}
-        \renewcommand{\thetable}{\Asbuk{appendnum}.\arabic{table}}
-        \renewcommand{\thechapter}{\Asbuk{appendnum}}
-        \renewcommand{\thesection}{\Asbuk{appendnum}.\arabic{section}}
-        \renewcommand{\thesubsection}{\Asbuk{appendnum}.\arabic{section}.\arabic{subsection}}
+        \renewcommand{\thefigure}{\AsbukAppendix{appendnum}.\arabic{figure}}
+        \renewcommand{\thetable}{\AsbukAppendix{appendnum}.\arabic{table}}
+        \renewcommand{\thechapter}{\AsbukAppendix{appendnum}}
+        \renewcommand{\thesection}{\AsbukAppendix{appendnum}.\arabic{section}}
+        \renewcommand{\thesubsection}{\AsbukAppendix{appendnum}.\arabic{section}.\arabic{subsection}}
+        \renewcommand{\theequation}{\AsbukAppendix{appendnum}.\arabic{equation}}
 }
-% прибираємо недопустимі букви з позначення додатків
-\pretocmd\append{
-        \stepcounter{appendnum}
-        \ifnum\Asbuk{appendnum}=Ґ \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Є \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=З \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=І \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ї \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Й \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=О \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ч \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ь \stepcounter{appendnum}\fi
-}{}{}
+
+% % хитра команда для створення додатків
+% \newcounter{appendnum}
+% \newcommand{\append}[1]{
+%         \setcounter{chapter}{0}
+%         \setcounter{figure}{0}
+%         \setcounter{table}{0}
+%         \setcounter{section}{0}
+%         \setcounter{subsection}{0}
+%         \titleformat{\chapter}
+%                 {\centering\Large\bfseries\MakeUppercase}
+%                 {\hspace{1cm}\thechapter}
+%                 {0.5em}
+%                 {}
+%         \chapter*{ДОДАТОК \Asbuk{appendnum}~~#1}
+%         \addcontentsline{toc}{chapter}{Додаток \Asbuk{appendnum}\ #1}
+%         \addvspace{-28pt}
+%         \preto\section{%
+%                 \ifnum\value{section}=0\addvspace{0pt}\fi%
+%         }
+%         \renewcommand{\thefigure}{\Asbuk{appendnum}.\arabic{figure}}
+%         \renewcommand{\thetable}{\Asbuk{appendnum}.\arabic{table}}
+%         \renewcommand{\thechapter}{\Asbuk{appendnum}}
+%         \renewcommand{\thesection}{\Asbuk{appendnum}.\arabic{section}}
+%         \renewcommand{\thesubsection}{\Asbuk{appendnum}.\arabic{section}.\arabic{subsection}}
+% }
+% % прибираємо недопустимі букви з позначення додатків
+% \pretocmd\append{
+%         \stepcounter{appendnum}
+%         \ifnum\Asbuk{appendnum}=Ґ \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Є \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=З \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=І \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ї \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Й \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=О \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ч \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ь \stepcounter{appendnum}\fi
+% }{}{}
 
 
 % ************************************************************* %
@@ -297,55 +315,51 @@
 % ************************************************************* %
 
 % спочатку --- для розділу
-\titleformat{\chapter}[display] % указуємо, що модифікуємо саме розділ
-                {\centering\Large\bfseries}        % указуємо формат назви ("усі великі")
-                {РОЗДІЛ \thechapter}                             % указуємо формат власне номера: це буде просто число, без крапки
-                {0.5em}                                            % відстань між номером і назвою 0.5em
-                {\MakeUppercase}                                               % текст, що передує назві
+\titleformat{\chapter} % указуємо, що модифікуємо саме розділ
+                {\centering\Large\MakeUppercase}        % указуємо формат назви ("усі великі")
+                {\bfseries\thechapter}                  % указуємо формат власне номера: це буде просто число, без крапки
+                {0.5em}                                 % відстань між номером і назвою
+                {\bfseries}                             % текст, що передує назві
         
 % тепер --- для підрозділу
-\titleformat{\section}[hang] % указуємо, що модифікуємо саме підрозділ block hang
-                {\Large\bfseries}                  % указуємо формат назви (жирний) \Large \normalsize
-                {\thesection.}                           % указуємо формат власне номера: це буде просто число, без крапки \hspace*{1cm}
+\titleformat{\section}[block] % указуємо, що модифікуємо саме підрозділ
+                {\Large}                                % указуємо формат назви (жирний)
+                {\hspace*{1cm}\bfseries\thesection}     % указуємо формат власне номера: це буде просто число, без крапки
                 {0.5em}                                 % відстань між номером і назвою
-                {}                                      % текст, що передує назві
+                {\bfseries}                             % текст, що передує назві
 
 % тепер --- для підрозділу ще нижчого рівня
-\titleformat{\subsection}[hang] % указуємо, що модифікуємо саме підрозділ нижнього рівня block hang
-                {\Large\bfseries}          % указуємо формат назви (жирний) \Large \normalsize
-                {\thesubsection.}       % указуємо формат власне номера: це буде просто число, без крапки
+\titleformat{\subsection}[block] % указуємо, що модифікуємо саме підрозділ нижнього рівня
+                {\Large}                        % указуємо формат назви (жирний)
+                {\bfseries\thesubsection}       % указуємо формат власне номера: це буде просто число, без крапки
                 {0.5em}                         % відстань між номером і назвою
-                {}                     % текст, що передує назві
+                {\bfseries}                     % текст, що передує назві
                         
-\newlength{\twobaselines}
-\AtBeginDocument{
-        \setlength{\twobaselines}{2\baselineskip}
+% тепер задамо відступи для заголовку розділу
+\titlespacing{\chapter} % указуємо, що модифікуємо саме розділ
+                {0pt}           % відступ зліва
+                {-28pt}         % відступ зверху (немає)
+                {48pt}          % відступ знизу (2 рядки)
 
-        % тепер задамо відступи для заголовку розділу
-        \titlespacing{\chapter} % указуємо, що модифікуємо саме розділ
-                        {0pt}           % відступ зліва
-                        {-28pt}         % відступ зверху (немає)
-                        {\twobaselines} % відступ знизу (2 рядки)
+% тепер задамо відступи для заголовку підрозділу                        
+\titlespacing{\section} % указуємо, що модифікуємо саме підрозділ
+                {0.5em}         % відступ зліва
+                {24pt}          % відступ зверху (2 рядки)
+                {24pt}          % відступ знизу (1 рядок)
 
-        % тепер задамо відступи для заголовку підрозділу                        
-        \titlespacing{\section} % указуємо, що модифікуємо саме підрозділ
-                        {\parindent}    % відступ зліва 0.5em
-                        {\twobaselines} % відступ зверху (2 рядки)
-                        {\twobaselines} % відступ знизу (1 рядок)
+%% тепер задамо відступи для заголовку підрозділу без нумерації                  
+\titlespacing{name=\section,numberless} 
+                {\parindent}    % відступ зліва
+                {24pt}          % відступ зверху (2 рядки)
+                {24pt}          % відступ знизу (1 рядок)
 
-        %% тепер задамо відступи для заголовку підрозділу без нумерації                  
-        \titlespacing{name=\section,numberless} 
-                        {\parindent}    % відступ зліва
-                        {\twobaselines} % відступ зверху (2 рядки)
-                        {\twobaselines} % відступ знизу (1 рядок)
+                        
+% тепер задамо відступи для заголовку пункта
+\titlespacing{\subsection} % указуємо, що модифікуємо саме пункт
+                {\parindent}    % відступ зліва
+                {24pt}          % відступ зверху (2 рядки)
+                {24pt}          % відступ знизу (1 рядок)
 
-                                
-        % тепер задамо відступи для заголовку пункта
-        \titlespacing{\subsection} % указуємо, що модифікуємо саме пункт
-                        {\parindent}    % відступ зліва
-                        {\twobaselines} % відступ зверху (2 рядки)
-                        {\twobaselines} % відступ знизу (1 рядок)
-}
 
 % тепер зробимо так, щоб між двома заголовками була звичайна відстань
 \preto\section{%
@@ -387,7 +401,7 @@
 \setlength\cftbeforechapskip{0pt}
 
 % займемося розділами
-\renewcommand{\cftchapaftersnum}{.}              % що буде писатися після номеру розділу (нічого)
+\renewcommand{\cftchapaftersnum}{}              % що буде писатися після номеру розділу (нічого)
 \renewcommand{\cftchapindent}{0cm}              % відступ номера розділу від лівого краю
 \renewcommand{\cftchapnumwidth}{1em}            % розмір поля, що виділяється під номер розділу
 \renewcommand{\cftchappagefont}{\mdseries}      % стиль номеру сторінки (звичайний, 14pt)
@@ -395,7 +409,7 @@
 \renewcommand{\cftchapleader}{\cftdotfill{\cftchapdotsep}} % чим заповнювати проміжок від заголовку до номеру сторінки (точками)
 
 % тепер займемося підрозділами
-\renewcommand{\cftsecaftersnum}{.}               % що буде писатися після номеру підрозділу (нічого)
+\renewcommand{\cftsecaftersnum}{}               % що буде писатися після номеру підрозділу (нічого)
 \renewcommand{\cftsecindent}{1em}               % відступ номера підрозділу від лівого краю
 \renewcommand{\cftsecnumwidth}{2em}             % розмір поля, що виділяється під номер підрозділу
 \renewcommand{\cftsecpagefont}{\mdseries}       % стиль номеру сторінки (звичайний, 14pt)
@@ -403,7 +417,7 @@
 \renewcommand{\cftsecleader}{\cftdotfill{\cftsecdotsep}} % чим заповнювати проміжок від заголовку до номеру сторінки (точками)
 
 % тепер займемося пунктами
-\renewcommand{\cftsubsecaftersnum}{.}            % що буде писатися після номеру пункта (нічого)
+\renewcommand{\cftsubsecaftersnum}{}            % що буде писатися після номеру пункта (нічого)
 \renewcommand{\cftsubsecindent}{3em}            % відступ номера пункта від лівого краю
 \renewcommand{\cftsubsecnumwidth}{2.5em}        % розмір поля, що виділяється під номер пункта
 \renewcommand{\cftsubsecpagefont}{\mdseries}    % стиль номеру сторінки (звичайний, 14pt)

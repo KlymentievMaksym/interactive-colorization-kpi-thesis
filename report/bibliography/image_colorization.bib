@@ -1,6 +1,156 @@
 %!TEX root = ../report.tex
 % Encoding: UTF-8
 
+@article{2001-reinhard-color-transfer,
+  title     = {Color transfer between images},
+  author    = {Reinhard, Erik and Adhikhmin, Michael and Gooch, Bruce and Shirley, Peter},
+  journal   = {IEEE Computer graphics and applications},
+  volume    = {21},
+  number    = {5},
+  pages     = {34--41},
+  year      = {2001},
+  publisher = {IEEE},
+  doi       = {10.1109/38.946629},
+  url       = {https://doi.org/10.1109/38.946629},
+  abstract  = {We describe a general technique for 'colorizing' one image with the colors from another. The result is a new image with the mood or feeling of the source. By choosing an appropriate source image, we can apply different color moods to the target image. We use the l alpha beta color space developed by Ruderman et al., which decorrelates the color channels, allowing us to apply simple statistical operations to transfer the color without artifacts.},
+  keywords  = {color transfer, color matching, image processing, l alpha beta color space},
+  language  = {english},
+  langid    = {english}
+}
+
+@inproceedings{2002-welsh-transferring-color,
+  title     = {Transferring color to greyscale images},
+  author    = {Welsh, Tomihisa and Ashikhmin, Michael and Mueller, Klaus},
+  booktitle = {Proceedings of the 29th Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH)},
+  pages     = {277--280},
+  year      = {2002},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  doi       = {10.1145/566570.566576},
+  url       = {https://doi.org/10.1145/566570.566576},
+  abstract  = {We introduce a general technique for colorizing greyscale images by transferring color from a reference color image. Our algorithm is based on the statistical color transfer technique introduced by Reinhard et al., but extends it to the problem of colorizing a greyscale image. We match luminance and texture information between the source and target images to find the best matching pixels, and then transfer the chromatic information (alpha and beta channels) in the decorrelated l alpha beta color space.},
+  keywords  = {colorization, color transfer, greyscale, texture matching, l alpha beta},
+  language  = {english},
+  langid    = {english}
+}
+
+@article{2022-efficient-transformers-survey,
+  title      = {Efficient Transformers: A Survey},
+  author     = {Tay, Yi and Dehghani, Mostafa and Bahri, Dara and Metzler, Donald},
+  journal    = {ACM Computing Surveys (CSUR)},
+  volume     = {55},
+  number     = {6},
+  pages      = {1--28},
+  year       = {2022},
+  publisher  = {ACM New York, NY},
+  doi        = {10.1145/3530811},
+  url        = {https://arxiv.org/abs/2009.06732},
+  abstract   = {Transformer models have achieved state-of-the-art across a diverse range of domains. However, the core self-attention mechanism has quadratic time and memory complexity, hindering its application to long sequences. This survey provides a comprehensive review of the myriad of 'efficient Transformers' proposed to solve this. We classify these models (e.g., low-rank approximations, memory-based, kernel-based) and discuss their fundamental trade-offs, noting that approximations often sacrifice expressive power and strict global context modeling for computational efficiency.},
+  keywords   = {efficient transformers, self-attention, linear approximation, deep learning},
+  language   = {english},
+  langid     = {english}
+}
+
+@inproceedings{2021-long-range-arena,
+  title      = {Long Range Arena: A Benchmark for Efficient Transformers},
+  author     = {Tay, Yi and Dehghani, Mostafa and Abnar, Samira and Shen, Yikang and Bahri, Dara and Pham, Philip and Yin, Jinfeng and Majd, Mustafa and Metzler, Donald},
+  booktitle  = {International Conference on Learning Representations (ICLR)},
+  year       = {2021},
+  url        = {https://arxiv.org/abs/2011.04006},
+  abstract   = {In the recent past, a plethora of efficient Transformer models have been proposed to address the quadratic complexity of self-attention. However, it remains unclear how these models perform on tasks that strictly require modeling long-range global dependencies. We propose the Long Range Arena (LRA) benchmark to evaluate these models. Our empirical results reveal that while linear-time approximations are faster, they often struggle to capture complex global context and fall short of the quality achieved by full quadratic attention.},
+  keywords   = {long range arena, benchmark, efficient transformers, linear attention},
+  language   = {english},
+  langid     = {english}
+}
+
+@inproceedings{2021-swin-transformer,
+  title      = {Swin Transformer: Hierarchical Vision Transformer using Shifted Windows},
+  author     = {Liu, Ze and Lin, Yutong and Cao, Yue and Hu, Han and Wei, Yixuan and Zhang, Zheng and Lin, Stephen and Guo, Baining},
+  booktitle  = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages      = {10012--10022},
+  year       = {2021},
+  url        = {https://arxiv.org/abs/2103.14030},
+  eprint     = {2103.14030},
+  eprinttype = {arxiv},
+  abstract   = {This paper presents a new vision Transformer, called Swin Transformer, that capably serves as a general-purpose backbone for computer vision. Challenges in adapting Transformer from language to vision arise from differences between the two domains, such as large variations in the scale of visual entities and the high resolution of pixels in images compared to words in text. To address these differences, we propose a hierarchical Transformer whose representation is computed with Shifted windows. The shifted windowing scheme brings greater efficiency by limiting self-attention computation to non-overlapping local windows while also allowing for cross-window connection. This hierarchical architecture has the flexibility to model at various scales and has linear computational complexity with respect to image size.},
+  keywords   = {vision transformer, self-attention, shifted windows, hierarchical architecture},
+  language   = {english},
+  langid     = {english}
+}
+
+@inproceedings{2026-mfmamba,
+  title      = {MFmamba: A Multi-function Network for Panchromatic Image Resolution Restoration Based on State-Space Model},
+  author     = {Jiang, Qian and Wang, Qianqian and Jin, Xin and Wo{\'z}niak, Micha{\l} and Yao, Shaowen and Zhou, Wei},
+  booktitle  = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume     = {40},
+  number     = {7},
+  pages      = {5406--5414},
+  year       = {2026},
+  url        = {https://arxiv.org/abs/2511.18888},
+  eprint     = {2511.18888},
+  eprinttype = {arxiv},
+  abstract   = {Panchromatic image resolution restoration is a crucial task in remote sensing. While recent methods leverage Transformers, their quadratic computational complexity limits application to high-resolution images. In this paper, we propose MFmamba, a Multi-function Network based on the State-Space Model, to address these limitations. MFmamba achieves linear complexity while effectively capturing global long-range dependencies, significantly improving the spatial resolution and perceptual quality of restored panchromatic images without the heavy computational overhead of self-attention mechanisms.},
+  keywords   = {state space models, mamba, panchromatic image, resolution restoration, remote sensing},
+  language   = {english},
+  langid     = {english}
+}
+
+@article{2026-haqagen,
+  title      = {Histogram Assisted Quality Aware Generative Model for Resolution Invariant NIR Image Colorization},
+  author     = {Attri, Abhinav and Dwivedi, Rajeev Ranjan and Das, Samiran and Kurmi, Vinod Kumar},
+  journal    = {arXiv preprint arXiv:2601.01103},
+  year       = {2026},
+  url        = {https://arxiv.org/abs/2601.01103},
+  eprint     = {2601.01103},
+  eprinttype = {arxiv},
+  abstract   = {Colorizing Near-Infrared (NIR) images is a challenging ill-posed problem due to the significant spectral divergence between NIR and RGB domains. In this paper, we propose a Histogram Assisted Quality Aware Generative Model (HAQAGen) for resolution-invariant NIR image colorization. By leveraging histogram priors to guide the generative process, our approach effectively bridges the spectral gap and produces visually coherent and highly realistic RGB representations, regardless of the input resolution constraints.},
+  keywords   = {near-infrared, nir colorization, generative models, histogram prior, resolution invariant},
+  language   = {english},
+  langid     = {english}
+}
+
+@article{2024-colormamba,
+  title      = {ColorMamba: Towards High-Quality NIR-to-RGB Spectral Translation with Mamba},
+  author     = {Zhai, Huiyu and Jin, Guang and Yang, Xingxing and Kang, Guosheng},
+  journal    = {arXiv preprint arXiv:2408.08087},
+  year       = {2024},
+  url        = {https://arxiv.org/abs/2408.08087},
+  eprint     = {2408.08087},
+  eprinttype = {arxiv},
+  abstract   = {Existing NIR-to-RGB spectral translation methods mainly focus on learning pixel-wise mapping relations utilizing CNN structures with local receptive fields. We propose ColorMamba, the first Mamba-based backbone for NIR-to-RGB spectral translation capable of modeling both global long-range dependencies and capturing local contexts. To address local context neglect in vanilla Mamba on 2D images, we introduce local convolutional enhancement and agent attention mechanisms to evolve Visual State Space Blocks (VSSBs), along with a novel scanning strategy utilizing padding tokens. Furthermore, we propose an HSV color prediction sub-network to exploit color priors for multi-scale guidance. Extensive experiments show that ColorMamba achieves a significant PSNR improvement over state-of-the-art methods.},
+  keywords   = {color mamba, spectral translation, nir-to-rgb, state space models, visual state space blocks},
+  language   = {english},
+  langid     = {english}
+}
+
+@article{2023-mamba,
+  title      = {Mamba: Linear-Time Sequence Modeling with Selective State Spaces},
+  author     = {Gu, Albert and Dao, Tri},
+  journal    = {arXiv preprint arXiv:2312.00752},
+  year       = {2023},
+  url        = {https://arxiv.org/abs/2312.00752},
+  eprint     = {2312.00752},
+  eprinttype = {arxiv},
+  abstract   = {Foundation models, now powering most applications in deep learning, are almost universally based on the Transformer architecture and its core attention mechanism. However, these models suffer from computational inefficiency on long sequences due to the quadratic scaling of attention with sequence length. While many sub-quadratic time architectures have been proposed to address this, they often underperform Transformers on core modalities like language. We identify that a key limitation of such models is their inability to perform content-dependent reasoning, and propose a new class of selective state space models that addresses this. Our design dynamically scales the recurrent state transition matrices based on the input, enabling the model to selectively remember or forget information along the sequence. We incorporate this selective mechanism into a simplified end-to-end neural network architecture without attention or MLP blocks (Mamba). Mamba enjoys fast inference (5x higher throughput than Transformers) and linear scaling in sequence length, and its improved selection mechanism allows it to match or exceed Transformer performance on modalities like language, audio, and genomics. For instance, a 2.8B parameter Mamba model outperforms Transformers of twice its size on language modeling and downstream tasks.},
+  keywords   = {state space models, deep learning, sequence modeling, linear time},
+  language   = {english},
+  langid     = {english}
+}
+
+@article{2024-vim,
+  title      = {Vision Mamba: Efficient Visual Representation Learning with Bidirectional State Space Model},
+  author     = {Zhu, Lianghui and Liao, Bencheng and Zhang, Qian and Wang, Xinlong and Liu, Wenyu and Wang, Xinggang},
+  journal    = {arXiv preprint arXiv:2401.09417},
+  year       = {2024},
+  url        = {https://arxiv.org/abs/2401.09417},
+  eprint     = {2401.09417},
+  eprinttype = {arxiv},
+  abstract   = {Recently the state space model (SSM) with efficient hardware-aware parallel processing, e.g., Mamba, has shown great potential for long sequence modeling. Transitioning this success to vision tasks is non-trivial due to the direction-sensitivity of SSMs and the position-agnostic nature of visual data. In this paper, we propose Vision Mamba (Vim), which blocks images into patches and projects them to position-aware visual tokens. Vim models the visual representation with bidirectional SSMs, enabling a global receptive field with linear computational complexity. We evaluate Vim on ImageNet classification, COCO object detection, and ADE20K semantic segmentation. Experimental results demonstrate that Vim achieves competitive performance against well-established vision transformers (e.g., DeiT) while exhibiting significantly higher efficiency. For high-resolution images, Vim is much faster and more memory-efficient, showcasing its potential as a next-generation backbone for vision tasks.},
+  keywords   = {vision mamba, state space models, computer vision, bidirectional ssm},
+  language   = {english},
+  langid     = {english}
+}
+
 
 @book{2016-deep-learning,
   title     = {Deep Learning},
