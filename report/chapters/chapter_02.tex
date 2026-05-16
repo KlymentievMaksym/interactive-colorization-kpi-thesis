@@ -223,8 +223,81 @@
             Водночас, шари пакетної нормалізації (\texttt{LayerNorm}), які передують кожному блоку, залишаються унікальними для кожного кроку $i$.
             Такий підхід дозволяє моделі проєктувати ознаки в різні підпростори та успішно адаптуватися до різних рівнів абстракції попри спільні вагові матриці $A, B, C, D$ всередині самих блоків простору станів.
 
+        \subsection{Загальна архітектура}
+            \begin{figure}[ht]
+                \centering
+                \resizebox{\textwidth}{!}{%
+                \begin{tikzpicture}[
+                    scale=0.8, transform shape,
+                    box/.style={draw, thick, rounded corners=3pt, align=center, minimum width=2.5cm, minimum height=0.9cm, font=\small},
+                    enc/.style={box, fill=blue!10, draw=blue!60!black},
+                    dec/.style={box, fill=cyan!10, draw=cyan!60!black},
+                    skip/.style={->, thick, dashed, color=gray!80!black, >=stealth},
+                    arr/.style={->, thick, color=black, >=stealth}
+                ]
+                    % --- Input ---
+                    \node[box, fill=gray!15, draw=gray!60!black, minimum width=2cm] (in) at (-5, 0) {\textbf{Вхід}\\$L$ + $ab_{hint}$ + маска\\(4 канали)};
+
+                    % --- ENCODER ---
+                    \node[enc] (enc1) at (-1, 0) {\textbf{Enc 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+                    \node[enc] (enc2) at (-1, -1.5) {\textbf{Enc 2} (DoubleConv)\\$128$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+                    \node[enc] (enc3) at (-1, -3) {\textbf{Enc 3} (DoubleConv)\\$256$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+
+                    % --- BI-MAMBA ---
+                    \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
+                    \node[above, font=\footnotesize\bfseries, color=black] at (mamba.north) {Bi-Directional Mamba};
+                    
+                    \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {Mamba Fwd};
+                    \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {Mamba Rev};
+                    \node[circle, draw=black, thick, fill=white, inner sep=1pt, font=\small] (plus) at (4.6, -4.5) {$+$};
+                    \node[above, font=\scriptsize, text=black] at (plus.north) {Усереднення};
+
+                    \draw[arr, color=black] (mfwd) -- (plus);
+                    \draw[arr, color=black] (mrev) -- (4.6, -5.5) -- (plus);
+
+                    % --- DECODER ---
+                    \node[dec] (dec3) at (6, -3) {\textbf{Dec 3} (DoubleConv)\\$128$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+                    \node[dec] (dec2) at (6, -1.5) {\textbf{Dec 2} (DoubleConv)\\$64$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+                    \node[dec] (dec1) at (6, 0) {\textbf{Dec 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+
+                    % --- OUTPUT ---
+                    \node[box, fill=orange!15, draw=orange!60!black, minimum width=2cm] (out) at (10, 0) {\textbf{Вихід}\\Канали $a, b$\\$[-1, 1]$};
+
+                    % --- Arrows ---
+                    \draw[arr] (in) -- (enc1);
+
+                    \draw[arr] (enc1) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc2);
+                    \draw[arr] (enc2) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc3);
+
+                    \draw[arr] (enc3) -- node[left, font=\scriptsize, align=right] {Pool $\downarrow 2$\\Flatten\\$\to (B, L, D)$} (-1, -5) -- (mamba.west);
+                    
+                    \draw[arr, color=black] (mamba.west) -- (mfwd.west);
+                    \draw[arr, color=black] (mfwd.south) -- node[left, font=\scriptsize] {Flip} (1, -5.5) -- (mrev.west);
+                    \draw[arr, color=black] (plus.east) -- (mamba.east);
+
+                    \draw[arr] (mamba.east) -- (6, -5) -- node[right, font=\scriptsize, align=left] {Reshape\\Up $\uparrow 2$} (dec3.south);
+
+                    \draw[arr] (dec3) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec2);
+                    \draw[arr] (dec2) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec1);
+
+                    \draw[arr] (dec1) -- node[above, font=\scriptsize] {1x1 Conv} node[below, font=\scriptsize] {Tanh} (out);
+
+                    \draw[skip] (enc1) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec1);
+                    \draw[skip] (enc2) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec2);
+                    \draw[skip] (enc3) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec3);
+
+                \end{tikzpicture}%
+                }
+                \caption{Архітектура гібридної нейронної мережі Bidirectional Shared Mamba}
+                \label{fig:arch_general}
+            \end{figure}
+
+            Загальна архітектура розробленої мережі представлена на рис.~\ref{fig:arch_general}.
+
         \subsection{Формулювання функцій втрат}
-            Процес оптимізації гібридної мережі керується складеною цільовою функцією втрат, яка балансує піксельну точність відтворення кольору, суворе дотримання підказок користувача та візуальний, перцептивний, реалізм згенерованого зображення. 
+            Процес оптимізації гібридної мережі керується складеною цільовою функцією втрат,
+            яка балансує піксельну точність відтворення кольору,
+            суворе дотримання підказок користувача та візуальний, перцептивний, реалізм згенерованого зображення. 
             
             Загальна функція втрат $\mathcal{L}_{\mathrm{total}}$ формується як зважена сума трьох незалежних компонентів:
             \begin{equation*}
@@ -232,144 +305,73 @@
             \end{equation*}
             де $\lambda_{\mathrm{L1}}, \lambda_{\mathrm{hint}}, \lambda_{\mathrm{LPIPS}}$ --- відповідні вагові коефіцієнти, що задають пріоритет кожної метрики.
 
-            \textbf{1. Глобальна похибка кольоровості ($\mathcal{L}_{\mathrm{L1}}$)} \\
-            Базовою метрикою для оцінки правильності прогнозування каналів $a$ та $b$ обрано середню абсолютну похибку (Mean Absolute Error). На відміну від середньоквадратичної похибки ($\mathrm{MSE}$), яка схильна до генерації тьмяних та усереднених кольорів через надмірне штрафування значних відхилень, $\mathcal{L}_{\mathrm{L1}}$ стимулює модель до створення більш насичених результатів. Похибка обчислюється по всьому простору зображення між згенерованими $\hat{Y} = (\hat{a}, \hat{b})$ та істинними $Y = (a, b)$ каналами:
-            \begin{equation*}
-                \mathcal{L}_{\mathrm{L1}} = \frac{1}{N} \sum_{i=1}^{N} | Y_i - \hat{Y}_i |
-            \end{equation*}
+            \begin{enumerate}
+                \item \textbf{Глобальна похибка кольоровості ($\mathcal{L}_{\mathrm{L1}}$).}
+                Базовою метрикою для оцінки правильності прогнозування каналів $a$ та $b$ обрано середню абсолютну похибку.
+                На відміну від середньоквадратичної похибки ($\mathrm{MSE}$), яка схильна до генерації тьмяних та усереднених кольорів через надмірне штрафування значних відхилень, $\mathcal{L}_{\mathrm{L1}}$ стимулює модель до створення більш насичених результатів.
+                Похибка обчислюється по всьому простору зображення між згенерованими $\hat{Y} = (\hat{a}, \hat{b})$ та істинними $Y = (a, b)$ каналами:
+                \begin{equation*}
+                    \mathcal{L}_{\mathrm{L1}} = \frac{1}{N} \sum_{i=1}^{N} | Y_i - \hat{Y}_i |
+                \end{equation*}
 
-            \textbf{2. Штраф за ігнорування підказок ($\mathcal{L}_{\mathrm{hint}}$)} \\
-            Для забезпечення жорсткої реакції моделі на взаємодію з користувачем вводиться спеціалізований штраф, який обчислюється виключно в тих пікселях, де маска підказок $M$ є активною. Щоб запобігти дисбалансу градієнтів між зображеннями з різною кількістю підказок, похибка нормалізується на фактичну кількість пікселів підказки у конкретному зображенні (з додаванням константи $\epsilon = 10^{-8}$ для уникнення ділення на нуль):
-            \begin{equation*}
-                \mathcal{L}_{\mathrm{hint}} = \frac{1}{\max\left(\epsilon, \sum M_i\right)} \sum_{i=1}^{N} M_i \cdot | Y_i - \hat{Y}_i |
-            \end{equation*}
-            Цей компонент змушує нейромережу ставити найвищий пріоритет на бездоганне поширення цільового кольору саме з тих точок, які визначив користувач.
+                \item \textbf{Штраф за ігнорування підказок ($\mathcal{L}_{\mathrm{hint}}$).}
+                Для забезпечення жорсткої реакції моделі на взаємодію з користувачем вводиться спеціалізований штраф, який обчислюється виключно в тих пікселях, де маска підказок $M$ є активною.
+                Щоб запобігти дисбалансу градієнтів між зображеннями з різною кількістю підказок, похибка нормалізується на фактичну кількість пікселів підказки у конкретному зображенні з додаванням константи $\epsilon = 10^{-8}$ для уникнення ділення на нуль:
+                \begin{equation*}
+                    \mathcal{L}_{\mathrm{hint}} = \frac{1}{\max\left(\epsilon, \sum M_i\right)} \sum_{i=1}^{N} M_i \cdot | Y_i - \hat{Y}_i |
+                \end{equation*}
+                Цей компонент змушує нейромережу ставити найвищий пріоритет на бездоганне поширення цільового кольору саме з тих точок, які визначив користувач.
 
-            \textbf{3. Перцептивна похибка ($\mathcal{L}_{\mathrm{LPIPS}}$)} \\
-            Оскільки піксельні метрики (такі як $\mathrm{L1}$) часто не корелюють із суб'єктивним сприйняттям якості зображення людиною, до конвеєра навчання інтегровано перцептивну похибку $\mathrm{LPIPS}$ (Learned Perceptual Image Patch Similarity). Вона обчислює відстань між зображеннями у просторі високорівневих ознак попередньо навченої згорткової мережі (у даній системі --- архітектури VGG).
-
-            Оскільки VGG-екстрактор натренований на зображеннях у колірному просторі RGB, математичний граф обчислення похибки включає диференційовне перетворення колірних просторів <<на льоту>>. Спочатку нормалізовані канали денормалізуються до своїх фізичних масштабів (канал $L$ масштабується коефіцієнтом $50.0$, канали $a, b$ --- коефіцієнтом $110.0$). Далі відновлений тензор $\mathrm{CIELAB}$ конвертується у простір $\mathrm{RGB}$, обмежується у діапазоні $[0, 1]$ та нормалізується до $[-1, 1]$:
-            \begin{equation*}
-                \mathcal{L}_{\mathrm{LPIPS}} = \mathrm{VGG}\left( \mathrm{Norm}(\mathrm{LABtoRGB}(L, \hat{a}, \hat{b})), \, \mathrm{Norm}(\mathrm{LABtoRGB}(L, a, b)) \right)
-            \end{equation*}
-            Завдяки використанню цієї функції втрат гібридна модель вчиться генерувати не лише математично близькі, але й візуально реалістичні та структуровані текстури без ефекту неприродних градієнтних переходів.
-
+                \item \textbf{Перцептивна похибка ($\mathcal{L}_{\mathrm{LPIPS}}$).}
+                Оскільки піксельні метрики, такі як $\mathrm{L1}$, часто не корелюють із суб'єктивним сприйняттям якості зображення людиною,
+                до конвеєра навчання інтегровано перцептивну похибку $\mathrm{LPIPS}$.
+                Вона обчислює відстань між зображеннями у просторі високорівневих ознак попередньо навченої згорткової мережі, у нашій системі --- архітектури VGG.
+                
+                Оскільки VGG-екстрактор натренований на зображеннях у колірному просторі RGB, математичний граф обчислення похибки включає диференційовне перетворення колірних просторів <<на льоту>>.
+                Спочатку нормалізовані канали денормалізуються до своїх фізичних масштабів --- до каналу $L$ додається $1$ і разом це масштабується коефіцієнтом $50.0$, канали $a, b$ --- коефіцієнтом $110.0$.
+                Далі відновлений тензор $\mathrm{CIELAB}$ конвертується у простір $\mathrm{RGB}$, обмежується у діапазоні $[0, 1]$ та нормалізується до $[-1, 1]$:
+                \begin{equation*}
+                    \mathcal{L}_{\mathrm{LPIPS}} = \mathrm{VGG}\left( \mathrm{Norm}(\mathrm{LABtoRGB}(L, \hat{a}, \hat{b})), \, \mathrm{Norm}(\mathrm{LABtoRGB}(L, a, b)) \right)
+                \end{equation*}
+                Завдяки використанню цієї функції втрат гібридна модель вчиться генерувати не лише математично близькі, але й візуально реалістичні та структуровані текстури без ефекту неприродних градієнтних переходів.
+            \end{enumerate}
         % Що сюди пишемо:
         % 1. Анатомія MambaWrapper та DoubleConv (можна вставити твій код або його табличний опис).
         % 2. Математика bidirectional сканування (обґрунтування твого torch.flip).
         % 3. Механізм MambaShared (як реалізовано layer sharing).
         % 4. Формули лос-функцій (комбінація цільової похибки та контурів).
 
-% У цьому розділі описується практична реалізація розробленої системи інтерактивної колоризації на основі запропонованого методу. На основі аналізу, проведеного у попередніх розділах, за базову архітектуру було обрано гібридну нейронну мережу, що поєднує просторову точність згорткових мереж (U-Net) з лінійною ефективністю та глобальним рецептивним полем моделей простору станів (Mamba-SSM).
+        % У цьому розділі описується практична реалізація розробленої системи інтерактивної колоризації на основі запропонованого методу. На основі аналізу, проведеного у попередніх розділах, за базову архітектуру було обрано гібридну нейронну мережу, що поєднує просторову точність згорткових мереж (U-Net) з лінійною ефективністю та глобальним рецептивним полем моделей простору станів (Mamba-SSM).
 
-% Загальна архітектура розробленої мережі представлена на рис.~\ref{fig:arch_general}. Детально розглядається архітектурна формалізація процесу, проєктування базових блоків мережі, алгоритм інтеграції користувацьких підказок у латентний простір, а також механізм двонаправленого сканування (Bidirectional Scan) для усунення просторової асиметрії. 
-
-% \begin{figure}[ht]
-%     \centering
-%     \resizebox{\textwidth}{!}{%
-%     \begin{tikzpicture}[
-%         scale=0.8, transform shape,
-%         box/.style={draw, thick, rounded corners=3pt, align=center, minimum width=2.5cm, minimum height=0.9cm, font=\small},
-%         enc/.style={box, fill=blue!10, draw=blue!60!black},
-%         dec/.style={box, fill=cyan!10, draw=cyan!60!black},
-%         skip/.style={->, thick, dashed, color=gray!80!black, >=stealth},
-%         arr/.style={->, thick, color=black, >=stealth}
-%     ]
-%         % --- Input ---
-%         \node[box, fill=gray!15, draw=gray!60!black, minimum width=2cm] (in) at (-5, 0) {\textbf{Вхід}\\$L$ + $ab_{hint}$ + маска\\(4 канали)};
-
-%         % --- ENCODER ---
-%         \node[enc] (enc1) at (-1, 0) {\textbf{Enc 1} (DoubleConv)\\$64$ каналів, $H \times W$};
-%         \node[enc] (enc2) at (-1, -1.5) {\textbf{Enc 2} (DoubleConv)\\$128$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
-%         \node[enc] (enc3) at (-1, -3) {\textbf{Enc 3} (DoubleConv)\\$256$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
-
-%         % --- BI-MAMBA ---
-%         \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
-%         \node[above, font=\footnotesize\bfseries, color=black] at (mamba.north) {Bi-Directional Mamba};
+    \section{Програмна реалізація та графічний інтерфейс користувача}
+        Програмна реалізація розробленої системи виконана мовою програмування Python із використанням фреймворку глибокого навчання PyTorch.
+        Це забезпечує ефективне паралельне виконання тензорних обчислень на графічних процесорах та мінімізує час генерації результату.
         
-%         \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {Mamba Fwd};
-%         \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {Mamba Rev};
-%         \node[circle, draw=black, thick, fill=white, inner sep=1pt, font=\small] (plus) at (4.6, -4.5) {$+$};
-%         \node[above, font=\scriptsize, text=black] at (plus.north) {Усереднення};
+        З метою демонстрації практичної цінності алгоритму та забезпечення зручної взаємодії з моделлю, було спроєктовано графічний застосунок (рис.~\ref{fig:app_gui}).
+        Головною задачею застосунку є абстрагування складності нейромережевих операцій, що надає користувачеві інтуїтивно зрозумілий інструментарій для керування процесом колоризації.
 
-%         \draw[arr, color=black] (mfwd) -- (plus);
-%         \draw[arr, color=black] (mrev) -- (4.6, -5.5) -- (plus);
+        \begin{figure}[ht!]
+            \centering
+            \includegraphics[width=0.85\textwidth, keepaspectratio]{images/app-image.png}
+            \caption{Інтерфейс розробленого застосунку для інтерактивної колоризації}
+            \label{fig:app_gui}
+        \end{figure}
 
-%         % --- DECODER ---
-%         \node[dec] (dec3) at (6, -3) {\textbf{Dec 3} (DoubleConv)\\$128$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
-%         \node[dec] (dec2) at (6, -1.5) {\textbf{Dec 2} (DoubleConv)\\$64$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
-%         \node[dec] (dec1) at (6, 0) {\textbf{Dec 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+        Інтерфейс програми побудований за принципом інтерактивного візуального полотна.
+        Робочий процес розбитий на кілька інтуїтивних етапів:
+        \begin{enumerate}
+            \item \textbf{Ініціалізація:} Користувач завантажує вихідне зображення у довільному форматі.
+                Програмне забезпечення автоматично здійснює конвертацію вхідних даних у монохромний простір, ізолюючи канал яскравості $L$ як базову структуру сцени.
+            \item \textbf{Інтерактивне керування:} За допомогою вбудованого віртуального пензля користувач обирає бажані відтінки з колірної палітри та наносить їх на зображення.
+                Зміна розміру пензля в графічному інтерфейсі програмно транслюється у зміну розміру радіального гаусового ядра при формуванні маски підказок $M$.
+            \item \textbf{Синтез та візуалізація:} За запитом застосунок ініціює прямий прохід даних через обрану модель.
+                Згенеровані канали $a$ та $b$ миттєво об'єднуються з оригінальним каналом $L$, конвертуються у стандартний простір $\mathrm{RGB}$ і відображаються на екрані.
+        \end{enumerate}
 
-%         % --- OUTPUT ---
-%         \node[box, fill=orange!15, draw=orange!60!black, minimum width=2cm] (out) at (10, 0) {\textbf{Вихід}\\Канали $a, b$\\$[-1, 1]$};
-
-%         % --- Arrows ---
-%         \draw[arr] (in) -- (enc1);
-
-%         \draw[arr] (enc1) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc2);
-%         \draw[arr] (enc2) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc3);
-
-%         \draw[arr] (enc3) -- node[left, font=\scriptsize, align=right] {Pool $\downarrow 2$\\Flatten\\$\to (B, L, D)$} (-1, -5) -- (mamba.west);
-        
-%         \draw[arr, color=black] (mamba.west) -- (mfwd.west);
-%         \draw[arr, color=black] (mfwd.south) -- node[left, font=\scriptsize] {Flip} (1, -5.5) -- (mrev.west);
-%         \draw[arr, color=black] (plus.east) -- (mamba.east);
-
-%         \draw[arr] (mamba.east) -- (6, -5) -- node[right, font=\scriptsize, align=left] {Reshape\\Up $\uparrow 2$} (dec3.south);
-
-%         \draw[arr] (dec3) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec2);
-%         \draw[arr] (dec2) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec1);
-
-%         \draw[arr] (dec1) -- node[above, font=\scriptsize] {1x1 Conv} node[below, font=\scriptsize] {Tanh} (out);
-
-%         \draw[skip] (enc1) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec1);
-%         \draw[skip] (enc2) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec2);
-%         \draw[skip] (enc3) -- node[above, font=\scriptsize, text=gray!80!black] {Concat} (dec3);
-
-%     \end{tikzpicture}%
-%     }
-%     \caption{Архітектура гібридної нейронної мережі Bidirectional Shared Mamba}
-%     \label{fig:arch_general}
-% \end{figure}
-
-    \section{Застосунок для звичайних користувачів}
-
-% \section{Формулювання задачі інтерактивної колоризації}
-
-% Класична задача безумовної колоризації має фундаментальну проблему — надмірну невизначеність. Одному чорно-білому зображенню (канал яскравості $L$ у просторі CIELAB) може відповідати нескінченна кількість правдоподібних кольорових варіацій (канали $a$ та $b$). Використання лише базових функцій втрат, таких як середньоквадратична похибка, змушує модель усереднювати всі можливі кольори, що призводить до генерації тьмяних зображень (відомий як ефект «сепії»).
-
-% Для вирішення цієї проблеми та забезпечення багатоваріантності результатів розроблена система формулюється як задача умовної генерації (Conditional Generation). Модель навчається апроксимувати функцію відображення:
-% \begin{equation*}
-%     F: (L, H_{ab}, M) \rightarrow (\hat{a}, \hat{b}),
-% \end{equation*}
-% де $L$ — вхідний канал яскравості розмірності $H \times W \times 1$; $H_{ab}$ — тензор користувацьких підказок розмірності $H \times W \times 2$; $M$ — бінарна маска розмірності $H \times W \times 1$, яка вказує на просторове розташування дійсних підказок; $(\hat{a}, \hat{b})$ — прогнозовані хроматичні канали.
-
-% Для того, щоб уникнути появи жорстких артефактів у місцях кліків користувача, підказки розмиваються за допомогою двовимірного ядра Гаусса, утворюючи м'які плями розподілу кольору, які нейромережа здатна плавно поширювати до найближчих семантичних меж об'єктів. Загальний вхідний тензор має 4 канали і подається на вхід енкодера.
-
-% \section{Архітектура запропонованої моделі Bi-Mamba}
-
-% Розроблена модель базується на ієрархічній структурі типу U-Net, де класичний центральний вузол (Bottleneck) замінено на інноваційний блок простору станів.
-
-% \subsection{Проєктування енкодера та декодера (DoubleConv)}
-% Для вилучення просторових ознак та поступового зниження роздільної здатності використовується згортковий енкодер, що складається з трьох рівнів. Кожен рівень побудований на базі абстракції \textit{DoubleConv}, структурну схему якої зображено на рис.~\ref{fig:doubleconv}.
-
-% Блок DoubleConv включає послідовне виконання згорткового шару $3 \times 3$, шару батч-нормалізації (BatchNorm2d) та активації ReLU. Після кожного блоку DoubleConv в енкодері застосовується операція \textit{Max Pooling} ($2 \times 2$), яка зменшує просторову розмірність карт ознак у два рази. Декодер працює симетрично. Важливим елементом є використання наскрізних зв'язків (Skip Connections), які прокидають карти ознак з енкодера безпосередньо в декодер, обминаючи центральний блок для збереження дрібних деталей.
-
-% \subsection{Інтеграція двонаправленого блоку Mamba}
-% Основна інновація розробленої системи лежить у центральному вузлі архітектури. Ознаки, отримані після третього рівня енкодера розгортаються у послідовність (Flatten) і передаються до блоку простору станів. Його будову деталізовано на рис.~\ref{fig:shared_mamba}.
-
-% Базовий механізм Mamba є однонаправленим. Для подолання просторової асиметрії розроблено модуль \textbf{Bidirectional Shared Mamba}, який сканує послідовність у природному та інвертованому напрямках, використовуючи один і той самий набір параметрів із пулу блоків. Результати прямого та зворотного сканування додаються та усереднюються.
-
-% \section{Програмне середовище та застосунок користувача}
-
-% Програмна реалізація виконана мовою Python з використанням фреймворку PyTorch. Для демонстрації роботи системи розроблено графічний застосунок (рис.~\ref{fig:app_gui}). Застосунок дозволяє користувачеві завантажити монохромне зображення, нанести кольорові підказки за допомогою вбудованого пензля та миттєво отримати згенерований результат або серію варіацій. 
-
-% \begin{figure}[ht]
-%     \centering
-%     \includegraphics[width=0.85\textwidth, keepaspectratio]{images/app-image.png}
-%     \caption{Інтерфейс розробленого застосунку для інтерактивної колоризації}
-%     \label{fig:app_gui}
-% \end{figure}
+        Завдяки оптимізованій архітектурі моделі процес інференсу займає лічені мілісекунди.
+        Це дозволяє реалізувати функціонал багатоваріантної генерації:
+        користувач може вносити мінімальні корективи до підказок і миттєво спостерігати нові варіації розфарбовування,
+        здійснюючи ітеративний пошук найкращого художнього результату без жодних апаратних затримок.
 
 \chapconclude{\ref{chap:implementation}}
     У цьому розділі було детально описано процес інженерного проєктування та практичної реалізації системи багатоваріантної колоризації.
