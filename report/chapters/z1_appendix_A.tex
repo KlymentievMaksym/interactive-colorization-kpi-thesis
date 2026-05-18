@@ -2,12 +2,39 @@
 \append{Фрагменти вихідного коду програми}
 \label{appendix:A}
 
-У цьому додатку наведено фрагменти вихідного коду найбільш критичних модулів розробленої системи інтерактивної колоризації. Повний вихідний код проєкту, включно зі скриптами для навчання, валідації та графічним інтерфейсом користувача (GUI), доступний у публічному репозиторії за посиланням: \url{https://github.com/твій-логін/твій-репозиторій}.
+У цьому додатку наведено фрагменти вихідного коду найбільш критичних модулів розробленої системи інтерактивної колоризації.
+Повний вихідний код проєкту, включно зі скриптами для навчання, валідації та графічним інтерфейсом користувача, доступний у публічному репозиторії за посиланням: \url{https://github.com/KlymentievMaksym/interactive-colorization-engine}.
 
-% Налаштування красивого відображення коду для Python
+% \singlespacing
+% \lstset{
+%     language=Python,
+%     basicstyle=\ttfamily\footnotesize,
+%     keywordstyle=\bfseries\color{blue!70!black},
+%     commentstyle=\itshape\color{green!50!black},
+%     stringstyle=\color{orange!70!black},
+%     numbers=left,
+%     numberstyle=\tiny\color{gray},
+%     stepnumber=1,
+%     numbersep=10pt,
+%     backgroundcolor=\color{gray!5},
+%     showspaces=false,
+%     showstringspaces=false,
+%     showtabs=false,
+%     frame=single,
+%     rulecolor=\color{gray!40},
+%     tabsize=4,
+%     captionpos=t,
+%     breaklines=true,
+%     breakatwhitespace=false,
+%     title=\lstname,
+%     escapeinside={(*@}{@*)}, % Дозволяє вставляти українські коментарі
+%     extendedchars=true,
+%     literate={і}{{\'i}}1 {ї}{{\"i}}1 {є}{{\'e}}1 {ґ}{{\`g}}1 {І}{{\'I}}1 {Ї}{{\"I}}1 {Є}{{\'E}}1 {Ґ}{{\`G}}1 {а}{{\cyra}}1 {б}{{\cyrb}}1 {в}{{\cyrv}}1 {г}{{\cyrg}}1 {д}{{\cyrd}}1 {е}{{\cyre}}1 {ж}{{\cyrzh}}1 {з}{{\cyrz}}1 {и}{{\cyri}}1 {й}{{\cyrishrt}}1 {к}{{\cyrk}}1 {л}{{\cyrl}}1 {м}{{\cyrm}}1 {н}{{\cyrn}}1 {о}{{\cyro}}1 {п}{{\cyrp}}1 {р}{{\cyrr}}1 {с}{{\cyrs}}1 {т}{{\cyrt}}1 {у}{{\cyru}}1 {ф}{{\cyrf}}1 {х}{{\cyrh}}1 {ц}{{\cyrc}}1 {ч}{{\cyrch}}1 {ш}{{\cyrsh}}1 {щ}{{\cyrshch}}1 {ь}{{\cyrsftsn}}1 {ю}{{\cyryu}}1 {я}{{\cyrya}}1
+% }
+\AtBeginEnvironment{lstlisting}{\singlespacing}
 \lstset{
     language=Python,
-    basicstyle=\ttfamily\footnotesize,
+    basicstyle=\ttfamily\scriptsize\setstretch{1}, % одинарний інтервал всередині блоку
     keywordstyle=\bfseries\color{blue!70!black},
     commentstyle=\itshape\color{green!50!black},
     stringstyle=\color{orange!70!black},
@@ -23,13 +50,19 @@
     rulecolor=\color{gray!40},
     tabsize=4,
     captionpos=t,
-    breaklines=true,
+    breaklines=true,           % перенесення рядків
     breakatwhitespace=false,
+    breakindent=0pt,
+    postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space}, % стрілка на місці переносу
+    columns=flexible,          % коректне відображення пробілів без виходу за поле
+    keepspaces=true,
     title=\lstname,
-    escapeinside={(*@}{@*)}, % Дозволяє вставляти українські коментарі
+    escapeinside={(*@}{@*)},
     extendedchars=true,
     literate={і}{{\'i}}1 {ї}{{\"i}}1 {є}{{\'e}}1 {ґ}{{\`g}}1 {І}{{\'I}}1 {Ї}{{\"I}}1 {Є}{{\'E}}1 {Ґ}{{\`G}}1 {а}{{\cyra}}1 {б}{{\cyrb}}1 {в}{{\cyrv}}1 {г}{{\cyrg}}1 {д}{{\cyrd}}1 {е}{{\cyre}}1 {ж}{{\cyrzh}}1 {з}{{\cyrz}}1 {и}{{\cyri}}1 {й}{{\cyrishrt}}1 {к}{{\cyrk}}1 {л}{{\cyrl}}1 {м}{{\cyrm}}1 {н}{{\cyrn}}1 {о}{{\cyro}}1 {п}{{\cyrp}}1 {р}{{\cyrr}}1 {с}{{\cyrs}}1 {т}{{\cyrt}}1 {у}{{\cyru}}1 {ф}{{\cyrf}}1 {х}{{\cyrh}}1 {ц}{{\cyrc}}1 {ч}{{\cyrch}}1 {ш}{{\cyrsh}}1 {щ}{{\cyrshch}}1 {ь}{{\cyrsftsn}}1 {ю}{{\cyryu}}1 {я}{{\cyrya}}1
 }
+
+
 
 \section{Реалізація двонаправленого блоку Shared Mamba}
 
@@ -41,7 +74,15 @@ import torch.nn as nn
 from mamba_ssm import Mamba
 
 class MambaShared(nn.Module):
-    def __init__(self, d_model: int, d_state: int = 64, d_conv: int = 4, expand: int = 2, layers: int = 6, blocks: int = 2):
+    def __init__(
+        self,
+        d_model: int,
+        d_state: int = 64,
+        d_conv: int = 4,
+        expand: int = 2,
+        layers: int = 6,
+        blocks: int = 2
+    ):
         super().__init__()
         self.layers = layers
 
@@ -152,7 +193,7 @@ class MambaWrapper(BaseColorizer):
         x_flat = p3.view(b, c, h * w).permute(0, 2, 1).contiguous() # [B, L, D]
     
         x_fwd = self.mamba(x_flat)
-        x_flat_rev = torch.flip(x_flat, dims=[1]) # Перевертаємо послідовність (справа наліво, знизу вверх)
+        x_flat_rev = torch.flip(x_flat, dims=[1]) # Перевертаємо послідовність справа наліво, знизу вверх
         x_rev = self.mamba(x_flat_rev)
         x_rev = torch.flip(x_rev, dims=[1])
 
@@ -177,12 +218,16 @@ class MambaWrapper(BaseColorizer):
 
 \section{Генерація Гауссівських підказок}
 
-Наступний лістинг демонструє механізм перетворення точкових кліків користувача на м'які розподіли кольору під час формування вхідного тензора.
+Наступні два лістинг демонструють механізм перетворення точкових кліків користувача на м'які розподіли кольору під час формування вхідного тензора для тренування, валідації та тестування.
 
-\begin{lstlisting}[caption={ПідФункція генерації Гауссівських підказок}]
+\begin{lstlisting}[caption={Функція генерації маски інтерактивності}]
 import torch
 
-def get_gaussian_patch_box(size: int, sigma: float | None = None, device: str | torch.device = 'cpu') -> torch.Tensor:
+def get_gaussian_patch_box(
+    size: int,
+    sigma: float | None = None,
+    device: str | torch.device = 'cpu'
+) -> torch.Tensor:
     """Generate 2D Gauss kernel with max 1.0"""
     if sigma is None:
         sigma = size / 4.0
@@ -191,7 +236,11 @@ def get_gaussian_patch_box(size: int, sigma: float | None = None, device: str | 
     g = g / g.max()
     return g.view(-1, 1) * g.view(1, -1)
 
-def get_gaussian_patch_circle(size: int, sigma: float | None = None, device: str | torch.device = 'cpu') -> torch.Tensor:
+def get_gaussian_patch_circle(
+    size: int,
+    sigma: float | None = None,
+    device: str | torch.device = 'cpu'
+) -> torch.Tensor:
     """Generate 2D Radial Gauss kernel with max 1.0 and strict circular bounds"""
     if sigma is None:
         sigma = size / 4.0
@@ -225,28 +274,15 @@ from colorization_engine.utils.patches import get_gaussian_patch_circle as get_g
 
 saliency_sampler = FastSaliencySampler(blur_kernel_size=15, uniform_prior=0.15)
 
-VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.webp'}
-
-def _basic_prepare(path: str, color_code: int):
-    """Reads image from path, converts it to needed color system and returns image"""
-    _img = cv2.imread(path, cv2.IMREAD_COLOR)
-
-    if _img is None:
-        raise ValueError(f"Can't read: {path}")
-
-    _img = cv2.cvtColor(_img, color_code)
-    return _img
-
-def _apply_transform(transform: Compose | None, input: np.ndarray, target: np.ndarray | None = None):
-    """Applies tranform if exists and returns dict of input, hints and target"""
-    if transform is None:
-        return {"input": input, "target": target}
-
-    transformed = transform(image=input, target=target)
-
-    return {"input": transformed['image'], "target": target if target is None else transformed['target']}
-
-def _receive_hints(ab_tensor: torch.Tensor, l_tensor: torch.Tensor, min_hint_size: int = 2, max_hint_size: int = 16, num_hints_val: int = 3, patch_size_val: int = 15, training: bool = True) -> torch.Tensor:
+def _receive_hints(
+    ab_tensor: torch.Tensor,
+    l_tensor: torch.Tensor,
+    min_hint_size: int = 2,
+    max_hint_size: int = 16,
+    num_hints_val: int = 3,
+    patch_size_val: int = 15,
+    training: bool = True
+) -> torch.Tensor:
     _, h, w = ab_tensor.shape
     device = ab_tensor.device
     mask = torch.zeros((1, h, w), dtype=torch.float32, device=device)
@@ -316,70 +352,9 @@ def _receive_hints(ab_tensor: torch.Tensor, l_tensor: torch.Tensor, min_hint_siz
     return hints
 \end{lstlisting}
 
-\section{Як виглядає сам даталоадер}
-\begin{lstlisting}[caption={Даталоадер}]
-# colorization-engine/src/colorization_engine/data/datasets/single.py
-import cv2
-from pathlib import Path
-from torch.utils.data import Dataset
+\section{Комбінована функція втрат}
 
-from colorization_engine.data.datasets.preparements import VALID_EXTENSIONS, _basic_prepare, _apply_transform, _receive_hints
-from colorization_engine.utils.color_space import rgb_to_lab, normalize_l, normalize_ab
-
-
-class SingleTargetFolderDataset(Dataset):
-    """
-    Dataset for already existing only targets
-    """
-    def __init__(self, dir_root: str, min_hint_size: int = 2, max_hint_size: int = 16, num_hints_val: int = 3, patch_size_val: int = 15, transform = None, training: bool = False):
-        self.dir_root = Path(dir_root)
-
-        self.min_hint_size = min_hint_size
-        self.max_hint_size = max_hint_size
-        self.num_hints_val = num_hints_val
-        self.patch_size_val = patch_size_val
-
-        self.transform = transform
-        self.training = training
-        
-        self.images = [
-            f for f in self.dir_root.rglob("*")
-            if f.is_file() and f.suffix.lower() in VALID_EXTENSIONS
-        ]
-
-        if not len(self):
-            raise RuntimeError(f"No images in {self.dir_root}")
-
-        self.images.sort(key=lambda x: str(x))
-
-    def __len__(self):
-        return len(self.images)
-
-    def __getitem__(self, index):
-        path = self.images[index]
-
-        image_target = _basic_prepare(path, cv2.COLOR_BGR2RGB)
-
-        transform_dict = _apply_transform(self.transform, input=image_target)
-
-        image_input = transform_dict["input"]
-
-        image_lab = rgb_to_lab(image_input)
-        l_tensor = normalize_l(image_lab[:, :, 0])
-        ab_tensor = normalize_ab(image_lab[:, :, 1:3])
-
-        hints_tensor = _receive_hints(ab_tensor, l_tensor, min_hint_size=self.min_hint_size, max_hint_size=self.max_hint_size, num_hints_val=self.num_hints_val, patch_size_val=self.patch_size_val, training=self.training)
-
-        return {
-            "input": l_tensor,    # [1, 256, 256]
-            "hints": hints_tensor,  # [3, 256, 256] -> (a, b, mask)
-            "target": ab_tensor   # [2, 256, 256]
-        }
-\end{lstlisting}
-
-\section{Комбінована функція втрат (Colorization Loss)}
-
-Наступний лістинг демонструє кастомну функцію втрат, яка оптимізує модель одночасно за трьома критеріями: попіксельна точність (L1), перцептивна реалістичність (LPIPS) та точність виконання інтерактивних підказок користувача.
+Наступний лістинг демонструє кастомну функцію втрат, яка оптимізує модель одночасно за трьома критеріями: попіксельна точність L1, перцептивна реалістичність LPIPS та точність виконання інтерактивних підказок користувача.
 
 \begin{lstlisting}[caption={Реалізація гібридної функції втрат (PyTorch)}]
 import torch
@@ -407,7 +382,13 @@ class ColorizationLoss(BaseLoss):
         self.lpips_net.eval()
         self.lpips_net.requires_grad_(False)
 
-    def forward(self, pred: torch.Tensor, target: torch.Tensor, l_channel: torch.Tensor, hint_mask: torch.Tensor | None = None) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    def forward(
+        self,
+        pred: torch.Tensor,
+        target: torch.Tensor,
+        l_channel: torch.Tensor,
+        hint_mask: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         loss_l1 = self.l1_loss(pred, target) * self.l1_weight
 
         loss_hints = torch.zeros_like(loss_l1)
