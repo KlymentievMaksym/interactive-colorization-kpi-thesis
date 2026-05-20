@@ -1,0 +1,55 @@
+\begin{frame}{Колоризація}
+        \begin{columns}[T]
+            \begin{column}{0.65\textwidth}
+                % \textbf{Колоризація зображень}
+
+                % Це процес відновлення зображення або додавання кольору до чорно-білого зображення.
+                % % \begin{itemize}
+                % %     \item Це процес відновлення зображення або додавання кольору до чорно-білого зображення.
+                % %     % \item \textbf{Математично:} Прогнозування хроматичних каналів ($a$ та $b$) на основі каналу яскравості ($L$) у колірному просторі \textbf{CIELAB}.
+                % % \end{itemize}
+                
+                % \vspace{1em}
+                % \textbf{Користувацькі підказки}
+
+                % Це кольорові точки, які допомагають вирішити неоднозначність, наприклад, колір одягу зробити зеленим.
+                % % \begin{itemize}
+                % %     \item Це кольорові точки, які допомагають вирішити неоднозначність, наприклад, колір одягу зробити зеленим.
+                % %     % \item \textbf{Формат:} Задаються як м'які Гауссівські плями, а не жорсткі пікселі. Це дозволяє моделі плавно поширювати колір без різких меж та артефактів.
+                % % \end{itemize}
+                \begin{block}{Колоризація зображень}
+                    \begin{itemize}
+                        \item Це процес відновлення зображення або додавання кольору до чорно-білого зображення.
+                        % \item \textbf{Математично:} Прогнозування хроматичних каналів ($a$ та $b$) на основі каналу яскравості ($L$) у колірному просторі \textbf{CIELAB}.
+                    \end{itemize}
+                \end{block}
+                
+                % \vspace{1em}
+                \begin{exampleblock}{Користувацькі підказки}
+                    \begin{itemize}
+                        \item Це кольорові точки, які допомагають вирішити неоднозначність, наприклад, колір одягу зробити зеленим.
+                        % \item \textbf{Формат:} Задаються як м'які Гауссівські плями, а не жорсткі пікселі. Це дозволяє моделі плавно поширювати колір без різких меж та артефактів.
+                    \end{itemize}
+                \end{exampleblock}
+            \end{column}
+
+            \begin{column}{0.35\textwidth}
+                \centering
+                % \vspace{1.0em}
+                \vspace{0.8em}
+                \begin{tikzpicture}[
+                    arrow/.style={->, ultra thick, >=stealth, color=white}
+                ]
+
+                    \node[inner sep=0pt, draw, thick] (imgA) at (0, 1.25) {
+                        \includegraphics[width=3.5cm, height=2cm]{CharlieChaplin_gray_hint.png}
+                    };
+                    \node[inner sep=0pt, draw, thick] (imgB) at (0, -1.25) {
+                        \includegraphics[width=3.5cm, height=2cm]{CharlieChaplin_color.png}
+                    };
+                    \draw[arrow] (imgA.south) -- (imgB.north);
+
+                \end{tikzpicture}
+            \end{column}
+        \end{columns}
+    \end{frame}

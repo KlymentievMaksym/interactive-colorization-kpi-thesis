@@ -1,0 +1,69 @@
+\begin{frame}{Опис проблематики}
+    \begin{columns}[T]
+        \begin{column}{0.65\textwidth}
+            \begin{itemize}
+                \item<1-> \textbf{Невизначеність задачі:} Одне й те саме чорно-біле зображення може мати безліч візуально правдоподібних варіантів колоризації.
+                \item<2-> \textbf{Проблема <<Сепії>>:} Повністю автоматичні моделі часто генерують сірі зображення, зазвичай через використання лише L1 функції витрат.
+                \item<3- | alert@3> \textbf{Відсутність багатоваріантності:} Навіть в інтерактивних системах заданий набір підказок завжди дає єдиний статичний результат без альтернатив.
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.35\textwidth}
+            \centering
+            \vspace{1em}
+            \only<1>{
+                \begin{tikzpicture}[scale=0.85, transform shape]
+                    \node[draw, thick, fill=main2!70, minimum size=1.4cm, rounded corners=2pt, align=center] (bw) at (0, 0) {\small \color{black} Кіт \\ \color{gray} (Сірий)};
+
+                    \node[draw, thick, fill=orange!80, minimum size=1.2cm, rounded corners=2pt, rotate=15] (c1) at (2.5, 1.8) {\small \color{black} Рудий};
+                    \node[draw, thick, fill=white!80, minimum size=1.2cm, rounded corners=2pt, rotate=0] (c2) at (2.9, 0) {\small \color{black} Білий};
+                    \node[draw, thick, fill=black!80, minimum size=1.2cm, rounded corners=2pt, rotate=-15] (c3) at (2.5, -1.8) {\small \color{textWhite} Чорний};
+                    
+                    \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=45, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c1);
+                    \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=0, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c2);
+                    \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=-45, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c3);
+                \end{tikzpicture}
+            }
+            \only<2>{
+                \vspace{-1em}
+                % \begin{tikzpicture}[scale=0.85, transform shape]
+                %     \node[draw, thick, fill=red!80, minimum size=0.8cm, rounded corners=2pt] (c1) at (0, 1.5) {};
+                %     \node[draw, thick, fill=green!80, minimum size=0.8cm, rounded corners=2pt] (c2) at (0, 0) {};
+                %     \node[draw, thick, fill=blue!80, minimum size=0.8cm, rounded corners=2pt] (c3) at (0, -1.5) {};
+                    
+                %     \node[draw, thick, fill=main2!60, minimum size=1.5cm, rounded corners=2pt, align=center] (l1) at (2, 0) {\small \color{black} Лише \\ \color{black}  L1};
+                %     \node[draw, thick, fill=brown!40!orange!40!white, minimum size=1.5cm, rounded corners=2pt, align=center] (sepia) at (4, 0) {\small \color{black} Сепія};
+                    
+                %     \draw[->, thick, dashed, color=gray] (c1) -- (l1);
+                %     \draw[->, thick, dashed, color=gray] (c2) -- (l1);
+                %     \draw[->, thick, dashed, color=gray] (c3) -- (l1);
+                %     \draw[->, thick, dashed, color=gray] (l1) -- (sepia);
+                % \end{tikzpicture}
+                \begin{tikzpicture}[
+                    arrow/.style={->, ultra thick, >=stealth, color=white}
+                ]
+
+                    \node[inner sep=0pt, draw, thick] (imgA) at (0, 1.25) {
+                        \includegraphics[width=2cm, height=2cm]{horse.jpg}
+                    };
+                    \node[inner sep=0pt, draw, thick] (imgB) at (0, -1.25) {
+                        \includegraphics[width=2cm, height=2cm]{Horse_Sepia.png}
+                    };
+                    \draw[arrow] (imgA.south) -- (imgB.north);
+
+                \end{tikzpicture}
+            }
+            \only<3->{
+                \begin{tikzpicture}[scale=0.85, transform shape]
+                    \node[draw, thick, fill=gray!30, minimum size=1.5cm, rounded corners=2pt, align=center] (bw) at (0, 0) {\small \color{black} Вхід};
+                    \node[draw, thick, fill=yellow!40, minimum size=1.5cm, rounded corners=2pt, align=center] (hint) at (0, 3) {\small \color{black} Підказка};
+                    \node[draw, thick, fill=cyan!40, minimum size=2cm, rounded corners=2pt, align=center] (out) at (3, 1.5) {\small \color{black} Єдине \\ \color{black} Кольорове \\ \color{black} зображення};
+                    
+                    \draw[->, ultra thick, color=gray!80!black] (bw) to[out=0, in=180] (out);
+                    \draw[->, ultra thick, color=gray!80!black] (hint) to[out=0, in=180] (out);
+                \end{tikzpicture}
+            }
+            
+        \end{column}
+    \end{columns}
+\end{frame}

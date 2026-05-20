@@ -1,0 +1,217 @@
+\begin{frame}{Використання гібридної архітектури}
+    \begin{itemize}
+        \item<alert@1> \textbf{Інтеграція Bi-Mamba:} основою слугує U-Net подібна структура, де центральним вузлом є двонаправлений блок Mamba зі спільними вагами для оптимізації кількості параметрів мережі.
+        \item \textbf{Ефективність State Space Models:} забезпечує глобальне рецептивне поле при обчислювальній складності $\mathcal{O}(N)$, долаючи квадратичні обмеження класичного механізму уваги Трансформерів.
+        \item \textbf{Усунення просторової асиметрії:} оскільки колір пікселя залежить від оточення зусібіч, двонаправлене сканування гарантує, що модель отримує повний контекст без втрати локальної інформації.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Архітектура Bidirectional Shared Mamba}
+    \begin{center}
+        \color{black}
+        \resizebox{\textwidth}{!}{% Масштабує малюнок, щоб він ідеально вліз у ширину
+        \begin{tikzpicture}[
+            scale=0.8, transform shape,
+            box/.style={draw, thick, rounded corners=3pt, align=center, minimum width=2.5cm, minimum height=0.9cm, font=\small},
+            enc/.style={box, fill=blue!10, draw=blue!60!black},
+            dec/.style={box, fill=cyan!10, draw=cyan!60!black},
+            skip/.style={->, thick, dashed, color=gray!80, >=stealth},
+            arr/.style={->, thick, color=white!80, >=stealth},
+            legend/.style={draw=gray!50, dashed, fill=gray!10, align=left, font=\small, rounded corners=3pt, text=black, text width=3cm}
+        ]
+            % --- Input ---
+            \node[box, fill=gray!15, draw=gray!60!black, minimum width=2cm] (in) at (-5, 0) {\textbf{Вхід}\\$L$ + $ab_{hint}$ + маска\\(4 канали)};
+
+            % --- ENCODER ---
+            \node[enc] (enc1) at (-1, 0) {\textbf{Enc 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+            \node[enc] (enc2) at (-1, -1.5) {\textbf{Enc 2} (DoubleConv)\\$128$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+            \node[enc] (enc3) at (-1, -3) {\textbf{Enc 3} (DoubleConv)\\$256$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+
+            % --- BI-MAMBA ---
+            \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
+            \node[above, font=\footnotesize\bfseries, color=main2] at (mamba.north) {Bi-Directional Mamba};
+            
+            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {Mamba Fwd};
+            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {Mamba Rev};
+            \node[circle, draw=black, thick, fill=white, inner sep=1pt, font=\small] (plus) at (4.6, -4.5) {$+$};
+            \node[above, font=\scriptsize] at (plus.north) {Усереднення};
+
+            \draw[arr, color=black] (mfwd) -- (plus);
+            \draw[arr, color=black] (mrev) -- (4.6, -5.5) -- (plus);
+
+            % --- DECODER ---
+            \node[dec] (dec3) at (6, -3) {\textbf{Dec 3} (DoubleConv)\\$128$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+            \node[dec] (dec2) at (6, -1.5) {\textbf{Dec 2} (DoubleConv)\\$64$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+            \node[dec] (dec1) at (6, 0) {\textbf{Dec 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+
+            % --- OUTPUT ---
+            \node[box, fill=orange!15, draw=orange!60!black, minimum width=2cm] (out) at (10, 0) {\textbf{Вихід}\\Канали $a, b$\\$[-1, 1]$};
+
+            % --- Arrows ---
+            \draw[arr] (in) -- (enc1);
+
+            \draw[arr] (enc1) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc2);
+            \draw[arr] (enc2) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc3);
+
+            \draw[arr] (enc3) -- node[left, font=\scriptsize, align=right] {Pool $\downarrow 2$\\Flatten\\$\to (B, N, D)$} (-1, -5) -- (mamba.west);
+            
+            \draw[arr, color=black] (mamba.west) -- (mfwd.west);
+            \draw[arr, color=black] (mfwd.south) -- node[left, font=\scriptsize] {Flip} (1, -5.5) -- (mrev.west);
+            \draw[arr, color=black] (plus.east) -- (mamba.east);
+
+            \draw[arr] (mamba.east) -- (6, -5) -- node[right, font=\scriptsize, align=left] {Reshape\\Up $\uparrow 2$} (dec3.south);
+
+            \draw[arr] (dec3) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec2);
+            \draw[arr] (dec2) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec1);
+
+            \draw[arr] (dec1) -- node[above, font=\scriptsize] {1x1 Conv} node[below, font=\scriptsize] {Tanh} (out);
+
+            \draw[skip] (enc1) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec1);
+            \draw[skip] (enc2) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec2);
+            \draw[skip] (enc3) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec3);
+
+            % --- ЛЕГЕНДА ---
+            \node[legend] at (-5, -3.5) {
+                \textbf{Розшифровування змінних:}\\
+                $\mathbf{L, a, b}$ -- канали колірного простору CIE\textbf{LAB} -- яскравість та хроматичні параметри\\
+                $\mathbf{ab_{hint}}$ -- піксельні колірні підказки користувача
+            };
+            \node[legend] at (10, -3.5) {
+                \textbf{Розшифровування змінних:}\\
+                $\mathbf{H, W}$ -- просторові розмірності зображення (\textbf{H}eight x \textbf{W}idth)\\
+                $\mathbf{B, N, D}$ -- пакет (\textbf{B}atch), довжина послідовності ($\mathbf{N}$), розмірність ознак (\textbf{D}im)
+            };
+        \end{tikzpicture}
+        }
+    \end{center}
+\end{frame}
+
+\begin{frame}{Архітектура блоку DoubleConv}
+    \begin{center}
+        \resizebox{\textwidth}{!}{%
+        \begin{tikzpicture}[
+            scale=0.9, transform shape,
+            % --- СТИЛІ ---
+            layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.6cm, minimum height=1cm},
+            conv/.style={layer, fill=blue!20, draw=blue!40!white},
+            bn/.style={layer, fill=orange!20, draw=orange!40!white},
+            relu/.style={layer, fill=green!20, draw=green!40!white},
+            io/.style={layer, fill=gray!20, draw=gray!40!white},
+            arr/.style={->, thick, color=white!90, >=stealth},
+            group_box/.style={draw, dashed, thick, color=white!60, rounded corners=5pt},
+            legend/.style={draw=gray!50, dashed, fill=gray!10, align=left, font=\small, rounded corners=3pt, text=black, text width=3cm}
+        ]
+            % --- ВХІД ---
+            \node[io] (in) at (-1.5, 0) {\textbf{Вхід $x$}\\$C_{in} \times H \times W$};
+            %
+            % --- РЯДОК 1 ---
+            \node[conv] (c1) at (2.5, 0) {\textbf{Conv2d} ($3\times3$)\\$C_{in} \to C_{out}$};
+            \node[bn] (b1) at (6.2, 0) {\textbf{BatchNorm2d}\\$C_{out}$};
+            \node[relu] (r1) at (9.9, 0) {\textbf{ReLU}};
+            %
+            % --- РЯДОК 2 ---
+            \node[conv] (c2) at (2.5, -2.5) {\textbf{Conv2d} ($3\times3$)\\$C_{out} \to C_{out}$};
+            \node[bn] (b2) at (6.2, -2.5) {\textbf{BatchNorm2d}\\$C_{out}$};
+            \node[relu] (r2) at (9.9, -2.5) {\textbf{ReLU}};
+            %
+            % --- ВИХІД ---
+            \node[io] (out) at (13.8, -2.5) {\textbf{Вихід $y$}\\$C_{out} \times H \times W$};
+            %
+            % --- СТРІЛКИ ДАНИХ ---
+            \draw[arr] (in) -- (c1);
+            \draw[arr] (c1) -- (b1);
+            \draw[arr] (b1) -- (r1);
+            %
+            % Елегантний перехід на новий рядок (із закругленими кутами)
+            \draw[arr, rounded corners=6pt] (r1.south) -- ++(0, -0.75) -| (c2.north);
+            %
+            \draw[arr] (c2) -- (b2);
+            \draw[arr] (b2) -- (r2);
+            \draw[arr] (r2) -- (out);
+            %
+            % --- РАМКА НАВКОЛО SEQUENTIAL ---
+            \draw[group_box] (0.8, 1.2) rectangle (11.6, -3.5);
+            \node[color=white!90, font=\bfseries] at (6.2, 1.5) {DoubleConv (nn.Sequential)};
+
+            % --- ЛЕГЕНДА ---
+            \node[legend] at (-1.5, -2.5) {
+                \textbf{Розшифровування змінних:}\\
+                $\mathbf{C_{in}, C_{out}}$ -- кількість вхідних та вихідних каналів ознак
+            };
+            \node[legend] at (13.8, 0) {
+                \textbf{Розшифровування змінних:}\\
+                $\mathbf{H, W}$ -- просторові розмірності (\textbf{H}eight x \textbf{W}idth)
+            };
+        \end{tikzpicture}%
+        }
+    \end{center}
+\end{frame}
+
+\begin{frame}{Архітектура блоку Shared Mamba}
+    \begin{center}
+        \resizebox{\textwidth}{!}{%
+        \begin{tikzpicture}[
+            scale=0.9, transform shape,
+            layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.8cm, minimum height=1cm},
+            mamba/.style={layer, fill=green!40, draw=green!80!black},
+            norm/.style={layer, fill=orange!30, draw=orange!70!black},
+            io/.style={layer, fill=gray!30, draw=gray!70!black},
+            add/.style={circle, draw=white, thick, fill=gray!20, inner sep=2pt, font=\small, text=black},
+            arr/.style={->, thick, >=stealth, color=white!80},
+            braceArr/.style={draw, dashed, thick, color=white!40, rounded corners=5pt},
+            shared/.style={layer, fill=green!35, draw=green!70!white, minimum width=3.2cm},
+            legend/.style={draw=gray!50, dashed, fill=gray!10, align=left, font=\footnotesize, rounded corners=3pt, text=black}
+        ]
+
+            % --- Рамка одного кроку ---
+            \draw[braceArr, fill=side1!60!black] (1.7, 1.3) rectangle (11.3, -1.8);
+            \node[font=\bfseries\small, color=white!60] at (6.5, 1.65) {Крок $i = 0, 1, \ldots, \texttt{layers}{-}1$};
+
+            % --- ВХІД ---
+            \node[io] (in) at (0, 0) {\textbf{Вхід} $x$\\$(B,\,L,\,D)$};
+
+            % --- КРОК i ---
+            \node[norm]   (ln)  at (3.5, 0)   {\textbf{LayerNorm$_i$}\\$D$};
+            \node[shared] (mb)  at (7.2, 0)   {\textbf{Mamba Block}\\(спільний, $\lfloor i/k \rfloor$)};
+            \node[add]    (add) at (10.5, 0)  {$+$};
+
+            % --- ВИХІД ---
+            \node[io] (out) at (13.5, 0) {\textbf{Вихід} $x$\\$(B,\,L,\,D)$};
+
+            % --- Стрілки прямого проходу ---
+            \draw[arr] (in)  -- (ln);
+            \draw[arr] (ln)  -- (mb);
+            \draw[arr] (mb)  -- (add);
+            \draw[arr] (add) -- (out);
+
+            % --- Residual skip ---
+            \draw[arr, rounded corners=6pt]
+                (in.south) -- ++(0, -0.5) -- node[above, font=\scriptsize, text=white!70] {residual} ++(10.5,0) -- (add.south);
+
+
+            % --- Пул спільних блоків ---
+            \node[font=\small\bfseries, color=white!80] at (7.15, -3.25) {\textit{Пул спільних блоків (\texttt{blocks} = 2)}};
+            \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b0) at (6, -2.5) {Mamba$_0$};
+            \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b1) at (8.25, -2.5) {Mamba$_1$};
+
+            % --- Формула індексу ---
+            \node[above, font=\scriptsize, color=green!70!white, align=left] at (mb.north) {$\text{block idx} = \min\!\left(\left\lfloor\frac{i}{\lfloor \text{Layers}/\text{Blocks} \rfloor}\right\rfloor,\, \text{Blocks}{-}1\right)$};
+
+            \draw[arr, dashed, color=white!40, rounded corners=4pt] (b0.north) -- ++(0, 0.5) -- (mb.south);
+            \draw[arr, dashed, color=white!40, rounded corners=4pt] (b1.north) -- ++(0, 0.5) -- (mb.south);
+
+            % --- LayerNorm пул ---
+            \node[io, minimum width=2.6cm, minimum height=0.75cm, font=\footnotesize] (lns) at (2, -2.5) {LayerNorm$_0 \ldots$ LayerNorm$_5$};
+            \node[font=\scriptsize, color=white!50, align=center] at (2, -3.25) {(унікальні, \texttt{layers} = 6)};
+            \draw[arr, dashed, color=white!40, rounded corners=4pt] (lns.north) -- ++(0, 0.5) -- (ln.south);
+
+            % --- ЛЕГЕНДА ---
+            \node[legend] at (6.8, 2.5) {
+                \textbf{Розшифровування змінних:}\\
+                $\mathbf{B}$ -- розмір пакету (Batch size), $\mathbf{N}$ -- довжина послідовності (Sequence length), $\mathbf{D}$ -- розмірність ознак (Embedding dim)\\
+                $\mathbf{i}$ -- індекс поточного шару (\texttt{layer idx}), $\mathbf{k}$ -- розмір групи шарів для одного спільного блоку
+            };
+        \end{tikzpicture}%
+        }
+    \end{center}
+\end{frame}

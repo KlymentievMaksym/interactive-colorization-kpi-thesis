@@ -1,0 +1,542 @@
+% !TEX program = lualatex
+
+\documentclass[10pt, aspectratio=169, xcolor=table]{beamer}
+\usepackage{fontspec}
+\setmainfont{Verdana}
+\setsansfont{Verdana}
+\setmonofont{Verdana}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\captionsetup[figure]{labelformat=empty}
+\captionsetup[subfigure]{labelformat=empty}
+\usepackage{hyperref}
+\usepackage{tabularray}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{calc}
+\usepackage{datetime}
+\usepackage{bm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=red
+}
+
+\makeatletter
+\def\input@path{{../themes/}}
+\makeatother
+\usetheme{ImageColor}
+
+\graphicspath{{../images/}}
+\input{../utils/data.tex}
+
+\begin{document}
+    \begin{frame}[plain]
+        \maketitle
+    \end{frame}
+
+    \begin{frame}{Колоризація}
+        \begin{columns}[T]
+            \begin{column}{0.65\textwidth}
+                \textbf{Колоризація зображень}
+
+                Це процес відновлення зображення або додавання кольору до чорно-білого зображення.
+                % \begin{itemize}
+                %     \item Це процес відновлення зображення або додавання кольору до чорно-білого зображення.
+                %     % \item \textbf{Математично:} Прогнозування хроматичних каналів ($a$ та $b$) на основі каналу яскравості ($L$) у колірному просторі \textbf{CIELAB}.
+                % \end{itemize}
+                
+                \vspace{1em}
+                \textbf{Користувацькі підказки}
+
+                Це кольорові точки, які допомагають вирішити неоднозначність, наприклад, колір одягу зробити зеленим.
+                % \begin{itemize}
+                %     \item Це кольорові крапки, які допомагають вирішити неоднозначність, наприклад, колір одягу зробити зеленим.
+                %     % \item \textbf{Формат:} Задаються як м'які Гауссівські плями, а не жорсткі пікселі. Це дозволяє моделі плавно поширювати колір без різких меж та артефактів.
+                % \end{itemize}
+            \end{column}
+
+            \begin{column}{0.35\textwidth}
+                \centering
+                % \vspace{1.0em}
+                \begin{tikzpicture}[
+                    arrow/.style={->, ultra thick, >=stealth, color=white}
+                ]
+
+                    \node[inner sep=0pt, draw, thick] (imgA) at (0, 1.25) {
+                        \includegraphics[width=3.5cm, height=2cm]{CharlieChaplin_gray_hint.png}
+                    };
+                    \node[inner sep=0pt, draw, thick] (imgB) at (0, -1.25) {
+                        \includegraphics[width=3.5cm, height=2cm]{CharlieChaplin_color.png}
+                    };
+                    \draw[arrow] (imgA.south) -- (imgB.north);
+
+                \end{tikzpicture}
+            \end{column}
+        \end{columns}
+    \end{frame}
+
+    \begin{frame}{Опис проблематики}
+        \begin{columns}[T]
+            \begin{column}{0.65\textwidth}
+                \begin{itemize}
+                    \item<1-> \textbf{Невизначеність задачі:} Одне й те саме чорно-біле зображення може мати безліч візуально правдоподібних варіантів колоризації.
+                    \item<2-> \textbf{Проблема <<Сепії>>:} Повністю автоматичні моделі часто генерують сірі зображення, зазвичай через використання лише L1 функції витрат.
+                    \item<3- | alert@3> \textbf{Відсутність багатоваріантності:} Навіть в інтерактивних системах заданий набір підказок завжди дає єдиний статичний результат без альтернатив.
+                \end{itemize}
+            \end{column}
+
+            \begin{column}{0.35\textwidth}
+                \centering
+                \vspace{1em}
+                \only<1>{
+                    \begin{tikzpicture}[scale=0.85, transform shape]
+                        \node[draw, thick, fill=main2!70, minimum size=1.4cm, rounded corners=2pt, align=center] (bw) at (0, 0) {\small \color{black} Кіт \\ \color{gray} (Сірий)};
+
+                        \node[draw, thick, fill=orange!80, minimum size=1.2cm, rounded corners=2pt, rotate=15] (c1) at (2.5, 1.8) {\small \color{black} Рудий};
+                        \node[draw, thick, fill=white!80, minimum size=1.2cm, rounded corners=2pt, rotate=0] (c2) at (2.9, 0) {\small \color{black} Білий};
+                        \node[draw, thick, fill=black!80, minimum size=1.2cm, rounded corners=2pt, rotate=-15] (c3) at (2.5, -1.8) {\small \color{textWhite} Чорний};
+                        
+                        \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=45, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c1);
+                        \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=0, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c2);
+                        \draw[->, thick, shorten >=2pt, color=white!80!black] (bw) to[out=-45, in=180] node[above, sloped, font=\scriptsize] {\color{textWhite} ?} (c3);
+                    \end{tikzpicture}
+                }
+                \only<2>{
+                    \vspace{-1em}
+                    % \begin{tikzpicture}[scale=0.85, transform shape]
+                    %     \node[draw, thick, fill=red!80, minimum size=0.8cm, rounded corners=2pt] (c1) at (0, 1.5) {};
+                    %     \node[draw, thick, fill=green!80, minimum size=0.8cm, rounded corners=2pt] (c2) at (0, 0) {};
+                    %     \node[draw, thick, fill=blue!80, minimum size=0.8cm, rounded corners=2pt] (c3) at (0, -1.5) {};
+                        
+                    %     \node[draw, thick, fill=main2!60, minimum size=1.5cm, rounded corners=2pt, align=center] (l1) at (2, 0) {\small \color{black} Лише \\ \color{black}  L1};
+                    %     \node[draw, thick, fill=brown!40!orange!40!white, minimum size=1.5cm, rounded corners=2pt, align=center] (sepia) at (4, 0) {\small \color{black} Сепія};
+                        
+                    %     \draw[->, thick, dashed, color=gray] (c1) -- (l1);
+                    %     \draw[->, thick, dashed, color=gray] (c2) -- (l1);
+                    %     \draw[->, thick, dashed, color=gray] (c3) -- (l1);
+                    %     \draw[->, thick, dashed, color=gray] (l1) -- (sepia);
+                    % \end{tikzpicture}
+                    \begin{tikzpicture}[
+                        arrow/.style={->, ultra thick, >=stealth, color=white}
+                    ]
+
+                        \node[inner sep=0pt, draw, thick] (imgA) at (0, 1.25) {
+                            \includegraphics[width=2cm, height=2cm]{horse.jpg}
+                        };
+                        \node[inner sep=0pt, draw, thick] (imgB) at (0, -1.25) {
+                            \includegraphics[width=2cm, height=2cm]{Horse_Sepia.png}
+                        };
+                        \draw[arrow] (imgA.south) -- (imgB.north);
+
+                    \end{tikzpicture}
+                }
+                \only<3->{
+                    \begin{tikzpicture}[scale=0.85, transform shape]
+                        \node[draw, thick, fill=gray!30, minimum size=1.5cm, rounded corners=2pt, align=center] (bw) at (0, 0) {\small \color{black} Вхід};
+                        \node[draw, thick, fill=yellow!40, minimum size=1.5cm, rounded corners=2pt, align=center] (hint) at (0, 3) {\small \color{black} Підказка};
+                        \node[draw, thick, fill=cyan!40, minimum size=2cm, rounded corners=2pt, align=center] (out) at (3, 1.5) {\small \color{black} Єдине \\ \color{black} Кольорове \\ \color{black} зображення};
+                        
+                        \draw[->, ultra thick, color=gray!80!black] (bw) to[out=0, in=180] (out);
+                        \draw[->, ultra thick, color=gray!80!black] (hint) to[out=0, in=180] (out);
+                    \end{tikzpicture}
+                }
+                
+            \end{column}
+        \end{columns}
+    \end{frame}
+
+    \begin{frame}{Постановка задачі}
+        \begin{itemize}
+            \item \textbf{Розробка архітектури:} Створити генеративну модель на базі архітектури Mamba-SSM для оптимізації обчислень.
+            \item \textbf{Розробка застосунку:} Створити застосунок, де користувач обирає модель, дає фотографію та кольорові підказки і, як результат, отримує кілька варіантів колоризації.
+            \item \textbf{Інтерактивність:} Реалізувати механізм прийняття підказок з використанням Гауссівських розподілів для уникнення артефактів.
+            \item \textbf{Багатоваріантність:} Забезпечити здатність моделі генерувати декілька унікальних варіантів колоризації з одного набору вхідних даних.
+            \item \textbf{Порівняльний аналіз:} Провести оцінку рішення за системою об'єктивних метрик (PSNR, SSIM, LPIPS, FID, KID) та за ефективністю (VRAM, Time) відносно базових моделей (\href{https://arxiv.org/pdf/1705.02999}{SIGGRAPH17}, \href{https://arxiv.org/pdf/1603.08511}{ECCV16}, \href{https://arxiv.org/pdf/2212.11613}{DDColor}).
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Використання гібридної архітектури}
+        \begin{itemize}
+            \item<alert@1> \textbf{Інтеграція Bi-Mamba:} Основою слугує U-Net подібна структура, де центральним вузлом є двонаправлений блок Mamba зі спільними вагами для оптимізації кількості параметрів мережі.
+            \item \textbf{Ефективність State Space Models:} Забезпечує глобальне рецептивне поле при обчислювальній складності $\mathcal{O}(N)$, долаючи квадратичні обмеження класичного механізму уваги Трансформерів.
+            \item \textbf{Усунення просторової асиметрії:} Оскільки колір пікселя залежить від оточення зусібіч, двонаправлене сканування гарантує, що модель отримує повний контекст без втрати локальної інформації.
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}{Архітектура Bidirectional Shared Mamba}
+        \begin{center}
+            \color{black}
+            \resizebox{\textwidth}{!}{% Масштабує малюнок, щоб він ідеально вліз у ширину
+            \begin{tikzpicture}[
+                scale=0.8, transform shape,
+                box/.style={draw, thick, rounded corners=3pt, align=center, minimum width=2.5cm, minimum height=0.9cm, font=\small},
+                enc/.style={box, fill=blue!10, draw=blue!60!black},
+                dec/.style={box, fill=cyan!10, draw=cyan!60!black},
+                skip/.style={->, thick, dashed, color=gray!80, >=stealth},
+                arr/.style={->, thick, color=white!80, >=stealth}
+            ]
+                % --- Input ---
+                \node[box, fill=gray!15, draw=gray!60!black, minimum width=2cm] (in) at (-5, 0) {\textbf{Вхід}\\$L$ + $ab_{hint}$ + маска\\(4 канали)};
+
+                % --- ENCODER ---
+                \node[enc] (enc1) at (-1, 0) {\textbf{Enc 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+                \node[enc] (enc2) at (-1, -1.5) {\textbf{Enc 2} (DoubleConv)\\$128$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+                \node[enc] (enc3) at (-1, -3) {\textbf{Enc 3} (DoubleConv)\\$256$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+
+                % --- BI-MAMBA ---
+                \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
+                \node[above, font=\footnotesize\bfseries, color=main2] at (mamba.north) {Bi-Directional Mamba};
+                
+                \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {Mamba Fwd};
+                \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {Mamba Rev};
+                \node[circle, draw=black, thick, fill=white, inner sep=1pt, font=\small] (plus) at (4.6, -4.5) {$+$};
+                \node[above, font=\scriptsize] at (plus.north) {Усереднення};
+
+                \draw[arr, color=black] (mfwd) -- (plus);
+                \draw[arr, color=black] (mrev) -- (4.6, -5.5) -- (plus);
+
+                % --- DECODER ---
+                \node[dec] (dec3) at (6, -3) {\textbf{Dec 3} (DoubleConv)\\$128$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
+                \node[dec] (dec2) at (6, -1.5) {\textbf{Dec 2} (DoubleConv)\\$64$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
+                \node[dec] (dec1) at (6, 0) {\textbf{Dec 1} (DoubleConv)\\$64$ каналів, $H \times W$};
+
+                % --- OUTPUT ---
+                \node[box, fill=orange!15, draw=orange!60!black, minimum width=2cm] (out) at (10, 0) {\textbf{Вихід}\\Канали $a, b$\\$[-1, 1]$};
+
+                % --- Arrows ---
+                \draw[arr] (in) -- (enc1);
+
+                \draw[arr] (enc1) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc2);
+                \draw[arr] (enc2) -- node[right, font=\scriptsize] {Pool $\downarrow 2$} (enc3);
+
+                \draw[arr] (enc3) -- node[left, font=\scriptsize, align=right] {Pool $\downarrow 2$\\Flatten\\$\to (B, L, D)$} (-1, -5) -- (mamba.west);
+                
+                \draw[arr, color=black] (mamba.west) -- (mfwd.west);
+                \draw[arr, color=black] (mfwd.south) -- node[left, font=\scriptsize] {Flip} (1, -5.5) -- (mrev.west);
+                \draw[arr, color=black] (plus.east) -- (mamba.east);
+
+                \draw[arr] (mamba.east) -- (6, -5) -- node[right, font=\scriptsize, align=left] {Reshape\\Up $\uparrow 2$} (dec3.south);
+
+                \draw[arr] (dec3) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec2);
+                \draw[arr] (dec2) -- node[right, font=\scriptsize] {Up $\uparrow 2$} (dec1);
+
+                \draw[arr] (dec1) -- node[above, font=\scriptsize] {1x1 Conv} node[below, font=\scriptsize] {Tanh} (out);
+
+                \draw[skip] (enc1) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec1);
+                \draw[skip] (enc2) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec2);
+                \draw[skip] (enc3) -- node[above, font=\scriptsize, text=gray!40!white] {Concat} (dec3);
+
+            \end{tikzpicture}
+            }
+        \end{center}
+    \end{frame}
+
+    \begin{frame}{Архітектура блоку DoubleConv}
+        \begin{center}
+            \resizebox{\textwidth}{!}{%
+            \begin{tikzpicture}[
+                scale=0.9, transform shape,
+                % --- СТИЛІ ---
+                layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.6cm, minimum height=1cm},
+                conv/.style={layer, fill=blue!20, draw=blue!40!white},
+                bn/.style={layer, fill=orange!20, draw=orange!40!white},
+                relu/.style={layer, fill=green!20, draw=green!40!white},
+                io/.style={layer, fill=gray!20, draw=gray!40!white},
+                arr/.style={->, thick, color=white!90, >=stealth},
+                group_box/.style={draw, dashed, thick, color=white!60, rounded corners=5pt}
+            ]
+                % --- ВХІД ---
+                \node[io] (in) at (-1.5, 0) {\textbf{Вхід $x$}\\$C_{in} \times H \times W$};
+                %
+                % --- РЯДОК 1 ---
+                \node[conv] (c1) at (2.5, 0) {\textbf{Conv2d} ($3\times3$)\\$C_{in} \to C_{out}$};
+                \node[bn] (b1) at (6.2, 0) {\textbf{BatchNorm2d}\\$C_{out}$};
+                \node[relu] (r1) at (9.9, 0) {\textbf{ReLU}};
+                %
+                % --- РЯДОК 2 ---
+                \node[conv] (c2) at (2.5, -2.5) {\textbf{Conv2d} ($3\times3$)\\$C_{out} \to C_{out}$};
+                \node[bn] (b2) at (6.2, -2.5) {\textbf{BatchNorm2d}\\$C_{out}$};
+                \node[relu] (r2) at (9.9, -2.5) {\textbf{ReLU}};
+                %
+                % --- ВИХІД ---
+                \node[io] (out) at (13.8, -2.5) {\textbf{Вихід $y$}\\$C_{out} \times H \times W$};
+                %
+                % --- СТРІЛКИ ДАНИХ ---
+                \draw[arr] (in) -- (c1);
+                \draw[arr] (c1) -- (b1);
+                \draw[arr] (b1) -- (r1);
+                %
+                % Елегантний перехід на новий рядок (із закругленими кутами)
+                \draw[arr, rounded corners=6pt] (r1.south) -- ++(0, -0.75) -| (c2.north);
+                %
+                \draw[arr] (c2) -- (b2);
+                \draw[arr] (b2) -- (r2);
+                \draw[arr] (r2) -- (out);
+                %
+                % --- РАМКА НАВКОЛО SEQUENTIAL ---
+                \draw[group_box] (0.8, 1.2) rectangle (11.6, -3.5);
+                \node[color=white!90, font=\bfseries] at (6.2, 1.5) {DoubleConv (nn.Sequential)};
+            \end{tikzpicture}%
+            }
+        \end{center}
+    \end{frame}
+
+    \begin{frame}{Архітектура блоку Shared Mamba}
+        \begin{center}
+            \resizebox{\textwidth}{!}{%
+            \begin{tikzpicture}[
+                scale=0.9, transform shape,
+                layer/.style={draw, thick, rounded corners=3pt, align=center, font=\small, text=black, minimum width=2.8cm, minimum height=1cm},
+                mamba/.style={layer, fill=green!40, draw=green!80!black},
+                norm/.style={layer, fill=orange!30, draw=orange!70!black},
+                io/.style={layer, fill=gray!30, draw=gray!70!black},
+                add/.style={circle, draw=white, thick, fill=gray!20, inner sep=2pt, font=\small, text=black},
+                arr/.style={->, thick, >=stealth, color=white!80},
+                braceArr/.style={draw, dashed, thick, color=white!40, rounded corners=5pt},
+                shared/.style={layer, fill=green!35, draw=green!70!white, minimum width=3.2cm}
+            ]
+
+                % --- Рамка одного кроку ---
+                \draw[braceArr, fill=side1!60!black] (1.7, 1.3) rectangle (11.3, -1.8);
+                \node[font=\bfseries\small, color=white!60] at (6.5, 1.65) {Крок $i = 0, 1, \ldots, \texttt{layers}{-}1$};
+
+                % --- ВХІД ---
+                \node[io] (in) at (0, 0) {\textbf{Вхід} $x$\\$(B,\,L,\,D)$};
+
+                % --- КРОК i ---
+                \node[norm]   (ln)  at (3.5, 0)   {\textbf{LayerNorm$_i$}\\$D$};
+                \node[shared] (mb)  at (7.2, 0)   {\textbf{Mamba Block}\\(спільний, $\lfloor i/k \rfloor$)};
+                \node[add]    (add) at (10.5, 0)  {$+$};
+
+                % --- ВИХІД ---
+                \node[io] (out) at (13.5, 0) {\textbf{Вихід} $x$\\$(B,\,L,\,D)$};
+
+                % --- Стрілки прямого проходу ---
+                \draw[arr] (in)  -- (ln);
+                \draw[arr] (ln)  -- (mb);
+                \draw[arr] (mb)  -- (add);
+                \draw[arr] (add) -- (out);
+
+                % --- Residual skip ---
+                \draw[arr, rounded corners=6pt]
+                    (in.south) -- ++(0, -0.5) -- node[above, font=\scriptsize, text=white!70] {residual} ++(10.5,0) -- (add.south);
+
+
+                % --- Пул спільних блоків ---
+                \node[font=\small\bfseries, color=white!80] at (7.15, -3.25) {\textit{Пул спільних блоків (\texttt{blocks} = 2)}};
+                \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b0) at (6, -2.5) {Mamba$_0$};
+                \node[shared, minimum width=2.2cm, minimum height=0.75cm, font=\footnotesize] (b1) at (8.25, -2.5) {Mamba$_1$};
+
+                % --- Формула індексу ---
+                \node[above, font=\scriptsize, color=green!70!white, align=left] at (mb.north) {$\text{block idx} = \min\!\left(\left\lfloor\frac{i}{\lfloor \text{Layers}/\text{Blocks} \rfloor}\right\rfloor,\, \text{Blocks}{-}1\right)$};
+
+                \draw[arr, dashed, color=white!40, rounded corners=4pt] (b0.north) -- ++(0, 0.5) -- (mb.south);
+                \draw[arr, dashed, color=white!40, rounded corners=4pt] (b1.north) -- ++(0, 0.5) -- (mb.south);
+
+                % --- LayerNorm пул ---
+                \node[io, minimum width=2.6cm, minimum height=0.75cm, font=\footnotesize] (lns) at (2, -2.5) {LayerNorm$_0 \ldots$ LayerNorm$_5$};
+                \node[font=\scriptsize, color=white!50, align=center] at (2, -3.25) {(унікальні, \texttt{layers} = 6)};
+                \draw[arr, dashed, color=white!40, rounded corners=4pt] (lns.north) -- ++(0, 0.5) -- (ln.south);
+
+            \end{tikzpicture}%
+            }
+        \end{center}
+    \end{frame}
+
+    \begin{frame}{Застосунок}
+        \begin{figure}
+            \centering
+            \href{https://youtu.be/-65bZQEPIPc}{\includegraphics[width=\textwidth, height=0.7\textheight, keepaspectratio]{app-image.png}}
+            \caption*{\footnotesize \href{https://youtu.be/-65bZQEPIPc}{\color{textCyan}Переглянути демо на YouTube}}
+        \end{figure}
+    \end{frame}
+
+    \begin{frame}{Приклади тренування та валідації}
+        \vspace{-0.15em}
+        \only<1>{
+            \framesubtitle{Тренування}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{train.png}
+        }
+        \only<2>{
+            \framesubtitle{Валідація без підказок}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{val_auto.png}
+        }
+        \only<3>{
+            \framesubtitle{Валідація з підказками}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{val_hint.png}
+        }
+    \end{frame}
+
+    \begin{frame}{Висновки}
+        \only<1>
+        {
+            \framesubtitle{Зображення}
+            \begin{columns}[T]
+                \begin{column}{0.33\textwidth}
+                    \begin{figure}[h]
+                        \centering
+                        \begin{subfigure}[b]{\textwidth}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{eccv161.jpg}
+                                \includegraphics[width=\textwidth]{eccv161.jpg}
+                                \caption{ECCV16}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{siggraph171.jpg}
+                                \includegraphics[width=\textwidth]{siggraph171.jpg}
+                                \caption{SIGGRAPH17}
+                            \end{subfigure}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{ddcolor1.jpg}
+                                \includegraphics[width=\textwidth]{ddcolor1.jpg}
+                                \caption{DDColor}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{mamba1.jpg}
+                                \includegraphics[width=\textwidth]{mamba1.jpg}
+                                \caption{Bi-Mamba}
+                            \end{subfigure}
+                        \end{subfigure}
+                        \caption{Natural Color Dataset}
+                    \end{figure}
+                \end{column}
+
+                \begin{column}{0.33\textwidth}
+                    \begin{figure}[h]
+                        \centering
+                        \begin{subfigure}[b]{\textwidth}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{eccv161.jpg}
+                                \includegraphics[width=\textwidth]{eccv162.jpg}
+                                \caption{ECCV16}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{siggraph171.jpg}
+                                \includegraphics[width=\textwidth]{siggraph172.jpg}
+                                \caption{SIGGRAPH17}
+                            \end{subfigure}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{ddcolor1.jpg}
+                                \includegraphics[width=\textwidth]{ddcolor2.jpg}
+                                \caption{DDColor}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{mamba1.jpg}
+                                \includegraphics[width=\textwidth]{mamba2.jpg}
+                                \caption{Bi-Mamba}
+                            \end{subfigure}
+                        \end{subfigure}
+                        \caption{COCO 2017 Test}
+                    \end{figure}
+                \end{column}
+
+                \begin{column}{0.33\textwidth}
+                    \begin{figure}[h]
+                        \centering
+                        \begin{subfigure}[b]{\textwidth}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{eccv161.jpg}
+                                \includegraphics[width=\textwidth]{eccv163.jpg}
+                                \caption{ECCV16}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{siggraph171.jpg}
+                                \includegraphics[width=\textwidth]{siggraph173.jpg}
+                                \caption{SIGGRAPH17}
+                            \end{subfigure}
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{ddcolor1.jpg}
+                                \includegraphics[width=\textwidth]{ddcolor3.jpg}
+                                \caption{DDColor}
+                            \end{subfigure}
+                            \hfill
+                            \begin{subfigure}[b]{0.45\textwidth}
+                                \centering
+                                % \includegraphics[width=\textwidth]{mamba1.jpg}
+                                \includegraphics[width=\textwidth]{mamba3.jpg}
+                                \caption{Bi-Mamba}
+                            \end{subfigure}
+                        \end{subfigure}
+                        \caption{Oxford-102 Flowers}
+                    \end{figure}
+                \end{column}
+            \end{columns}
+        }
+        \only<2>
+        {
+            \framesubtitle{Результати (Основні)}
+            \begin{table}[]
+                \centering
+                \small
+                \begin{tblr}{|l|c|c|c|c|c|}
+                    \hline
+                    \textbf{Модель}          & \textbf{PSNR} $\uparrow$ & \textbf{SSIM} $\uparrow$ & \textbf{LPIPS} $\downarrow$ & \textbf{VRAM} $\downarrow$ & \textbf{Time} $\downarrow$ \\ \hline
+                    ECCV16 (Auto)            & 20.11                    & 0.656                      & 0.231                       & 165.51 MB                  & 6.05 ms                  \\ \hline
+                    DDColor (Auto)           & 19.94                    & 0.653                      & 0.199                       & 1092.30 MB                 & 35.37 ms                 \\ \hline
+                    SIGGRAPH17 (Hinted)      & 20.77                    & 0.651                      & 0.185                       & 353.57 MB                  & 15.53 ms                 \\ \hline
+                    \textbf{Ours (Bi-Mamba)} & \textbf{22.53}           & \textbf{0.664}             & \textbf{0.143}              & \textbf{187.29 MB}         & \textbf{15.08 ms}        \\ \hline
+                \end{tblr}
+            \end{table}
+
+            \begin{itemize}
+                \item \textbf{Якість та швидкодія:} Запропонована модель на базі Mamba-SSM забезпечує високу візуальну якість, споживаючи менше VRAM під час використання.
+            \end{itemize}
+        }
+        
+        \only<3>
+        {
+            \framesubtitle{Результати (Додатково)}
+            \begin{table}[]
+                \centering
+                \small
+                \begin{tblr}{|l|c|c|c|c|c|}
+                    \hline
+                    \textbf{Модель}          & \textbf{FID} $\downarrow$ & \textbf{KID mean} $\downarrow$ & \textbf{KID std} $\downarrow$ & \textbf{MSE LAB} $\downarrow$ & \textbf{MSE HINT} $\downarrow$ \\ \hline
+                    ECCV16 (Auto)            & 23.0                      & 0.01770                        & 0.00720                       & 0.02300                       & 0.03807                        \\ \hline
+                    DDColor (Auto)           & 5.03125                   & 0.00485                        & 0.00848                       & 0.02290                       & 0.03773                        \\ \hline
+                    SIGGRAPH17 (Hinted)      & 7.9375                    & 0.00452                        & 0.00891                       & 0.01889                       & 0.00486                        \\ \hline
+                    \textbf{Ours (Bi-Mamba)} & \textbf{3.078}            & \textbf{0.00313}               & \textbf{0.00662}              & \textbf{0.01332}              & $\bm{6.1 \times 10^{-5}}$      \\ \hline
+                \end{tblr}
+            \end{table}
+
+            \begin{itemize}
+                \item \textbf{Точність та реалістичність:} Зниження $FID$/$KID$ свідчить про вищу перцептивну якість, а $MSE_{HINT}$ ($\bm{6.1 \times 10^{-5}}$) доводить ідеальну інтеграцію підказок у Bi-Mamba.
+            \end{itemize}
+        }
+    \end{frame}
+
+    \begin{frame}{Плани на подальше дослідження}
+        \begin{itemize}
+            \item \textbf{Генерація підказок:} Більш точне розміщення точок з урахуванням контурів об'єктів.
+            \item \textbf{Ще більше гібридних моделей (Наприклад Mamba-Diffusion):} Порівняння одної моделі використовуючи різні архітектури.
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}[plain]
+        \centering \color{textCyan} \Huge \textbf{Дякую за увагу!}
+    \end{frame}
+
+\end{document}
