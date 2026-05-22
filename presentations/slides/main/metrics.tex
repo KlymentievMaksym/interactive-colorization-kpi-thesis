@@ -1,0 +1,50 @@
+% \begin{frame}{Метрики}
+%     \small
+%     Оскільки колоризація має принципово неоднозначну природу (відображення $1 \to N$), для всебічного аналізу застосовується комбінований набір критеріїв:
+
+%     \vspace{0.3cm}
+%     \begin{itemize}
+%         \item \textbf{Похибки генерації ($\mathrm{MSE}$ та $\mathrm{MSE}_{\mathrm{HINT}}$):}
+%             оцінюють загальне відхилення кольору. Спеціалізована метрика з індексом $\mathrm{HINT}$ перевіряє, наскільки бездоганно мережа інтегрує користувацькі підказки без їхнього ігнорування.
+%         % \vspace{0.15cm}
+%         \item \textbf{Піксельні та структурні метрики ($\mathrm{PSNR}$, $\mathrm{SSIM}$):}
+%             класичні критерії, що фіксують пряме математичне відхилення від еталона та рівень збереження просторової геометрії об'єктів.
+%         % \vspace{0.15cm}
+%         \item \textbf{Перцептивні генеративні критерії ($\mathrm{LPIPS}$, $\mathrm{FID}$, $\mathrm{KID}$):}
+%             оцінюють візуальну правдоподібність. $\mathrm{LPIPS}$ вимірює схожість на рівні глибоких ознак, а $\mathrm{FID}$ і $\mathrm{KID}$ доводять наближеність згенерованих зображень до розподілу справжніх фотографій.
+%         % \vspace{0.15cm}
+%         \item \textbf{Апаратна ефективність ($\mathrm{VRAM}$, $\mathrm{Time}$):}
+%             критичні показники, що визначають придатність архітектури для миттєвої інтерактивної взаємодії.
+%     \end{itemize}
+% \end{frame}
+\begin{frame}{Метрики}
+    \footnotesize
+    % Оскільки колоризація має неоднозначну природу (відображення $1 \to N$), для аналізу застосовується комбінований набір критеріїв:
+
+    % \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Похибки генерації ($\mathrm{MSE}$, $\mathrm{MSE}_{\mathrm{HINT}}$):} оцінюють загальне відхилення та точність інтеграції підказок.
+        % \vspace{-0.15cm}
+        \begin{equation*}
+            \mathrm{MSE} \left( x, y \right) = \frac{1}{N} \sum_{i=1}^N (x_i - y_i)^2
+        \end{equation*}
+
+        \item \textbf{Піксельні та структурні ($\mathrm{PSNR}$, $\mathrm{SSIM}$):} фіксують відхилення від еталона та збереження геометрії.
+        % \vspace{-0.15cm}
+        \begin{equation*}
+            \mathrm{PSNR} \left( I, J \right) = 10 \log_{10} \left( \frac{{\mathrm{MAX} \left( I \right)}^2}{\mathrm{MSE} \left( I, J \right)} \right), \quad \mathrm{SSIM} \left( x, y \right) = \frac{(2\mu_x\mu_y + c_1)(2\sigma_{xy} + c_2)}{(\mu_x^2 + \mu_y^2 + c_1)(\sigma_x^2 + \sigma_y^2 + c_2)}
+        \end{equation*}
+
+        \item \textbf{Перцептивні генеративні ($\mathrm{LPIPS}$, $\mathrm{FID}$, $\mathrm{KID}$):} оцінюють візуальну правдоподібність та розподіл ознак.
+        % \vspace{-0.15cm}
+        \begin{equation*}
+            % \mathrm{LPIPS}(x, y) = \sum_{l} \frac{1}{H_l W_l} \sum_{h,w} \left\| w_l \odot \left( \hat{\phi}_l(x)_{hw} - \hat{\phi}_l(y)_{hw} \right) \right\|_2^2
+            \mathrm{LPIPS}(x, x_0) = \sum_l \frac{1}{H_l W_l} \sum_{h,w} \| w_l \odot (\hat{y}^l_{hw} - \hat{y}^l_{0hw}) \|_2^2
+        \end{equation*}
+        \begin{equation*}
+            \mathrm{FID} \left( x, y \right) = \|\mu_x - \mu_y\|^2 + \mathrm{Tr}\left(\Sigma_x + \Sigma_y - 2(\Sigma_x \Sigma_y)^{\frac{1}{2}}\right), \quad \mathrm{KID} \left( x, y \right) = {\mathrm{MMD} \left( x, y \right)}^2
+        \end{equation*}
+
+        \item \textbf{Апаратна ефективність ($\mathrm{VRAM}$, $\mathrm{Time}$):} критичні показники для миттєвої інтерактивної взаємодії.
+    \end{itemize}
+\end{frame}

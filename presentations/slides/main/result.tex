@@ -1,115 +1,5 @@
-\begin{frame}{Висновки}
+\begin{frame}{Експериментальні результати}
     \only<1>
-    {
-        \framesubtitle{Зображення}
-        \begin{columns}[T]
-            \begin{column}{0.33\textwidth}
-                \begin{figure}[h]
-                    \centering
-                    \begin{subfigure}[b]{\textwidth}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{eccv161.jpg}
-                            \includegraphics[width=\textwidth]{eccv161.jpg}
-                            \caption{ECCV16}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{siggraph171.jpg}
-                            \includegraphics[width=\textwidth]{siggraph171.jpg}
-                            \caption{SIGGRAPH17}
-                        \end{subfigure}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{ddcolor1.jpg}
-                            \includegraphics[width=\textwidth]{ddcolor1.jpg}
-                            \caption{DDColor}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{mamba1.jpg}
-                            \includegraphics[width=\textwidth]{mamba1.jpg}
-                            \caption{Bi-Mamba}
-                        \end{subfigure}
-                    \end{subfigure}
-                    \caption{Natural Color Dataset}
-                \end{figure}
-            \end{column}
-
-            \begin{column}{0.33\textwidth}
-                \begin{figure}[h]
-                    \centering
-                    \begin{subfigure}[b]{\textwidth}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{eccv161.jpg}
-                            \includegraphics[width=\textwidth]{eccv162.jpg}
-                            \caption{ECCV16}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{siggraph171.jpg}
-                            \includegraphics[width=\textwidth]{siggraph172.jpg}
-                            \caption{SIGGRAPH17}
-                        \end{subfigure}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{ddcolor1.jpg}
-                            \includegraphics[width=\textwidth]{ddcolor2.jpg}
-                            \caption{DDColor}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{mamba1.jpg}
-                            \includegraphics[width=\textwidth]{mamba2.jpg}
-                            \caption{Bi-Mamba}
-                        \end{subfigure}
-                    \end{subfigure}
-                    \caption{COCO 2017 Test}
-                \end{figure}
-            \end{column}
-
-            \begin{column}{0.33\textwidth}
-                \begin{figure}[h]
-                    \centering
-                    \begin{subfigure}[b]{\textwidth}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{eccv161.jpg}
-                            \includegraphics[width=\textwidth]{eccv163.jpg}
-                            \caption{ECCV16}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{siggraph171.jpg}
-                            \includegraphics[width=\textwidth]{siggraph173.jpg}
-                            \caption{SIGGRAPH17}
-                        \end{subfigure}
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{ddcolor1.jpg}
-                            \includegraphics[width=\textwidth]{ddcolor3.jpg}
-                            \caption{DDColor}
-                        \end{subfigure}
-                        \hfill
-                        \begin{subfigure}[b]{0.45\textwidth}
-                            \centering
-                            % \includegraphics[width=\textwidth]{mamba1.jpg}
-                            \includegraphics[width=\textwidth]{mamba3.jpg}
-                            \caption{Bi-Mamba}
-                        \end{subfigure}
-                    \end{subfigure}
-                    \caption{Oxford-102 Flowers}
-                \end{figure}
-            \end{column}
-        \end{columns}
-    }
-    \only<2>
     {
         \framesubtitle{Результати (Основні)}
         \begin{table}[]
@@ -124,11 +14,11 @@
                 vlines,
                 hlines
             }
-                Модель                   & $\mathrm{PSNR} \uparrow$          & $\mathrm{SSIM} \uparrow$            & $\mathrm{LPIPS} \downarrow$          & $\mathrm{VRAM} \downarrow$          & $\mathrm{Time} \downarrow$        \\
-                ECCV16 (Auto)            & 20.11                    & 0.656                      & 0.231                       & 165.51 MB                  & 6.05 ms                  \\
-                DDColor (Auto)           & 19.94                    & 0.653                      & 0.199                       & 1092.30 MB                 & 35.37 ms                 \\
-                SIGGRAPH17 (Hinted)      & 20.77                    & 0.651                      & 0.185                       & 353.57 MB                  & 15.53 ms                 \\
-                Ours (Bi-Mamba)          & 22.53                    & 0.664                      & 0.143                       & 187.29 MB                  & 15.08 ms                 \\
+                Модель              & $\mathrm{PSNR} \uparrow$ & $\mathrm{SSIM} \uparrow$ & $\mathrm{LPIPS} \downarrow$ & $\mathrm{VRAM} \downarrow$ & $\mathrm{Time} \downarrow$ \\
+                ECCV16 (Auto)       & 20.11                    & 0.656                    & 0.231                       & \alert{165.51 MB}          & \alert{6.05 ms}                    \\
+                DDColor (Auto)      & 19.94                    & 0.653                    & 0.199                       & 1092.30 MB                 & 35.37 ms                   \\
+                SIGGRAPH17 (Hinted) & 20.77                    & 0.651                    & 0.185                       & 353.57 MB                  & 15.53 ms                   \\
+                Ours (BiDir-Mamba)     & \alert{22.53}            & \alert{0.664}            & \alert{0.143}               & 187.29 MB                  & 15.08 ms                   \\
             \end{tblr}
         \end{table}
 
@@ -137,7 +27,7 @@
         \end{exampleblock}
     }
     
-    \only<3>
+    \only<2>
     {
         \framesubtitle{Результати (Додатково)}
         \begin{table}[]
@@ -152,16 +42,16 @@
                 vlines,
                 hlines
             }
-                Модель                   & $\mathrm{FID} \downarrow$          & $\mathrm{KID}_\mathrm{mean} \downarrow$          & $\mathrm{KID}_\mathrm{std} \downarrow$          & $\mathrm{MSE}_\mathrm{LAB} \downarrow$          & $\mathrm{MSE}_\mathrm{HINT} \downarrow$     \\
-                ECCV16 (Auto)            & 23.000                    & 0.01770                            & 0.00720                       & 0.02300                       & 0.03807                   \\
-                DDColor (Auto)           & 5.031                     & 0.00485                            & 0.00848                       & 0.02290                       & 0.03773                   \\
-                SIGGRAPH17 (Hinted)      & 7.937                     & 0.00452                            & 0.00891                       & 0.01889                       & 0.00486                   \\
-                Ours (Bi-Mamba)          & 3.078                     & 0.00313                            & 0.00662                       & 0.01332                       & $\bm{6.1 \times 10^{-5}}$ \\
+                Модель              & $\mathrm{FID} \downarrow$ & $\mathrm{KID}_\mathrm{mean} \downarrow$ & $\mathrm{KID}_\mathrm{std} \downarrow$ & $\mathrm{MSE}_\mathrm{LAB} \downarrow$ & $\mathrm{MSE}_\mathrm{HINT} \downarrow$ \\
+                ECCV16 (Auto)       & 23.000                    & 0.01770                                 & 0.00720                                & 0.02300                                & 0.03807                                 \\
+                DDColor (Auto)      & 5.031                     & 0.00485                                 & 0.00848                                & 0.02290                                & 0.03773                                 \\
+                SIGGRAPH17 (Hinted) & 7.937                     & 0.00452                                 & 0.00891                                & 0.01889                                & 0.00486                                 \\
+                Ours (BiDir-Mamba)     & \alert{3.078}             & \alert{0.00313}                         & \alert{0.00662}                        & \alert{0.01332}                        & \alert{$\bm{6.1 \times 10^{-5}}$}       \\
             \end{tblr}
         \end{table}
 
         \begin{exampleblock}{Точність та реалістичність}
-            Зниження $FID$/$KID$ свідчить про вищу перцептивну якість, а $MSE_{HINT}$ ($\bm{6.1 \times 10^{-5}}$) показує чудову інтеграцію підказок у Bi-Mamba.
+            Зниження $FID$/$KID$ свідчить про вищу перцептивну якість, а $MSE_{HINT}$ ($\bm{6.1 \times 10^{-5}}$) показує чудову інтеграцію підказок у BiDir-Mamba.
         \end{exampleblock}
     }
 \end{frame}

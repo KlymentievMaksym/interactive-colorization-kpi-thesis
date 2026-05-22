@@ -1,12 +1,12 @@
 \begin{frame}{Використання гібридної архітектури}
     \begin{itemize}
-        \item<alert@1> \textbf{Інтеграція Bi-Mamba:} основою слугує U-Net подібна структура, де центральним вузлом є двонаправлений блок Mamba зі спільними вагами для оптимізації кількості параметрів мережі.
-        \item \textbf{Ефективність State Space Models:} забезпечує глобальне рецептивне поле при обчислювальній складності $\mathcal{O}(N)$, долаючи квадратичні обмеження класичного механізму уваги Трансформерів.
+        \item<alert@1> \textbf{Інтеграція BiDir-Mamba:} основою слугує U-Net подібна структура, де центральним вузлом є двонаправлений блок Mamba зі спільними вагами для оптимізації кількості параметрів мережі.
+        \item \textbf{Лінійна ефективність та глобальне рецептивне поле:} забезпечує глобальне рецептивне поле при обчислювальній складності $\mathcal{O}(N)$, долаючи квадратичні обмеження класичного механізму уваги трансформерів, а також має справжнє глобальне рецептивне поле, на відміну від ефективних трансформерів, які тим чи іншим чином обмежені.
         \item \textbf{Усунення просторової асиметрії:} оскільки колір пікселя залежить від оточення зусібіч, двонаправлене сканування гарантує, що модель отримує повний контекст без втрати локальної інформації.
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Архітектура Bidirectional Shared Mamba}
+\begin{frame}{Архітектура U-Net + BiDir-Mamba}
     \begin{center}
         \color{black}
         \resizebox{\textwidth}{!}{% Масштабує малюнок, щоб він ідеально вліз у ширину
@@ -29,10 +29,10 @@
 
             % --- BI-MAMBA ---
             \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
-            \node[above, font=\footnotesize\bfseries, color=main2] at (mamba.north) {Bi-Directional Mamba};
+            \node[above, font=\footnotesize\bfseries, color=main2] at (mamba.north) {BiDir-Mamba};
             
-            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {Mamba Fwd};
-            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {Mamba Rev};
+            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mfwd) at (1, -4.5) {ShMamba Fwd};
+            \node[box, fill=white, draw=green!80!black, minimum width=2.2cm, minimum height=0.6cm, font=\footnotesize] (mrev) at (2.85, -5.5) {ShMamba Rev};
             \node[circle, draw=black, thick, fill=white, inner sep=1pt, font=\small] (plus) at (4.6, -4.5) {$+$};
             \node[above, font=\scriptsize] at (plus.north) {Усереднення};
 
@@ -147,7 +147,7 @@
     \end{center}
 \end{frame}
 
-\begin{frame}{Архітектура блоку Shared Mamba}
+\begin{frame}{Архітектура блоку ShMamba}
     \begin{center}
         \resizebox{\textwidth}{!}{%
         \begin{tikzpicture}[
@@ -208,10 +208,69 @@
             % --- ЛЕГЕНДА ---
             \node[legend] at (6.8, 2.5) {
                 \textbf{Розшифровування змінних:}\\
-                $\mathbf{B}$ -- розмір пакету (Batch size), $\mathbf{N}$ -- довжина послідовності (Sequence length), $\mathbf{D}$ -- розмірність ознак (Embedding dim)\\
+                $\mathbf{B}$ -- розмір пакету (Batch size), $\mathbf{L}$ -- довжина послідовності (Sequence length), $\mathbf{D}$ -- розмірність ознак (Embedding dim)\\
                 $\mathbf{i}$ -- індекс поточного шару (\texttt{layer idx}), $\mathbf{k}$ -- розмір групи шарів для одного спільного блоку
             };
         \end{tikzpicture}%
         }
     \end{center}
 \end{frame}
+
+\begin{frame}{Сам Mamba Block}
+    \small
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \begin{block}{Диференціальна динаміка (безперервний час)}
+                Відображає одновимірний сигнал $x(t)$ у прихований стан $h(t)$:
+                \vspace{-0.2cm}
+                \begin{align*}
+                    h'(t) &= A \cdot h(t) + B \cdot x(t) \\
+                    y(t) &= C \cdot h(t) + D \cdot x(t)
+                \end{align*}
+            \end{block}
+        \end{column}
+
+        \begin{column}{0.48\textwidth}
+            \begin{exampleblock}{Дискретизація (Zero-Order Hold)}
+                Перехід до дискретної рекурентної форми за допомогою кроку $\Delta$:
+                \vspace{-0.2cm}
+                \begin{align*}
+                    \overline{A} &= \exp(\Delta A) \\
+                    \overline{B} &= (\Delta A)^{-1}(\exp(\Delta A) - I) \cdot \Delta B \\
+                    h_k &= \overline{A} \cdot h_{k-1} + \overline{B} \cdot x_k
+                \end{align*}
+            \end{exampleblock}
+        \end{column}
+    \end{columns}
+
+    \begin{itemize}
+        \item \textbf{Селективність:} параметри $B$, $C$ та крок $\Delta$ є динамічними функціями від вхідного сигналу, що дозволяє відфільтровувати нерелевантну інформацію.
+        \item \textbf{Лінійна ефективність:} обчислювальна складність $\mathcal{O}(L)$ завдяки алгоритму паралельного сканування, що долає квадратичні обмеження трансформерів.
+    \end{itemize}
+\end{frame}
+% \begin{frame}{Сам Mamba Block}
+%     \small
+%     \begin{block}{Диференціальна динаміка (безперервний час)}
+%         \vspace{-0.3cm}
+%         \begin{align*}
+%             h'(t) &= A \cdot h(t) + B \cdot x(t) \\
+%             y(t) &= C \cdot h(t) + D \cdot x(t)
+%         \end{align*}
+%         \vspace{-0.3cm}
+%     \end{block}
+
+%     \begin{block}{Дискретизація (Zero-Order Hold)}
+%         \vspace{-0.3cm}
+%         \begin{align*}
+%             \overline{A} &= \exp(\Delta A) \\
+%             \overline{B} &= (\Delta A)^{-1}(\exp(\Delta A) - I) \cdot \Delta B \\
+%             h_k &= \overline{A} \cdot h_{k-1} + \overline{B} \cdot x_k
+%         \end{align*}
+%         \vspace{-0.3cm}
+%     \end{block}
+
+%     \begin{itemize}
+%         \item \textbf{Селективність:} параметри $B$, $C$ та $\Delta$ залежать від входу, що дозволяє динамічно відфільтровувати нерелевантну інформацію.
+%         \item \textbf{Ефективність $\mathcal{O}(L)$:} лінійна обчислювальна складність завдяки алгоритму паралельного сканування.
+%     \end{itemize}
+% \end{frame}
