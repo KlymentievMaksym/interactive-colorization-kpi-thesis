@@ -3,22 +3,91 @@
 \shortings
     % ФТІ --- Фізико-технічний інститут
 
-    \kafedraShort{} --- \kafedra{}
+    % \kafedraShort{} --- \kafedra{}
+    % Autoregressive Transformer --- авторегресивний трансформер
 
-    % $\xor$ --- операція побітового додавання  %зауважте, що використовується перевизначена операція \xor
+    % baseline model --- базова модель
 
-    CNN --- Convolutional Neural Networks
+    % cGAN --- умовна генеративно-змагальна мережа (англ. conditional Generative Adversarial Network)
 
-    GAN --- Generative Adversarial Networks
+    % CLIP --- контрастивне попереднє навчання мови та зображень (англ. Contrastive Language-Image Pre-training)
 
-    cGAN --- conditional Generative Adversarial Networks
+    % CNN --- згорткова нейронна мережа (англ. Convolutional Neural Network)
 
-    DDPM --- Denoising Diffusion Probabilistic Models
+    % Diffusion Model --- дифузійна модель
 
-    CLIP --- Contrastive Language-Image Pre-training
+    % FID --- відстань Фреше (англ. Fréchet Inception Distance)
 
-    % (Якщо ви не використовуєте перелік умовних позначень, просто приберіть 
-    % даний розділ.)
+    % GAN --- генеративно-змагальна мережа (англ. Generative Adversarial Network)
+
+    % KID --- ядерна відстань (англ. Kernel Inception Distance)
+
+    % LPIPS --- перцептивна метрика на базі глибоких ознак (англ. Learned Perceptual Image Patch Similarity)
+
+    % MAE --- середньоабсолютна похибка (англ. Mean Absolute Error)
+
+    % MSE --- середньоквадратична похибка (англ. Mean Squared Error)
+
+    % PSNR --- пікове відношення сигналу до шуму (англ. Peak Signal-to-Noise Ratio)
+
+    % SSIM --- індекс структурної схожості (англ. Structural Similarity Index)
+
+    % SSM --- селективна модель простору станів (англ. Selective State Space Model)
+
+    % Transformer --- трансформер
+
+
+    % VRAM --- відеопам'ять (англ. Video Random Access Memory)
+    \NewTblrTheme{abbrvlist}{
+        \SetTblrTemplate{caption}{empty}
+        \SetTblrTemplate{capcont}{empty}
+        \SetTblrTemplate{contfoot}{empty}
+        \SetTblrTemplate{conthead}{empty}
+    }
+
+    \noindent\textbf{Скорочення}
+    \vspace{0.5em}
+
+    \begin{longtblr}[
+        theme = abbrvlist 
+    ]{
+        width = \textwidth,
+        colspec = {l @{\quad---~~} X[l]}, 
+        % rowsep = 0.3em, 
+    }
+        cGAN & умовна генеративно-змагальна мережа (англ. conditional Generative Adversarial Network) \\
+        CLIP & контрастивне попереднє навчання мови та зображень (англ. Contrastive Language-Image Pre-training) \\
+        CNN & згорткова нейронна мережа (англ. Convolutional Neural Network) \\
+        FID & відстань Фреше (англ. Fréchet Inception Distance) \\
+        GAN & генеративно-змагальна мережа (англ. Generative Adversarial Network) \\
+        KID & ядерна відстань (англ. Kernel Inception Distance) \\
+        LPIPS & перцептивна метрика на базі глибоких ознак (англ. Learned Perceptual Image Patch Similarity) \\
+        MAE & середньоабсолютна похибка (англ. Mean Absolute Error) \\
+        MSE & середньоквадратична похибка (англ. Mean Squared Error) \\
+        PSNR & пікове відношення сигналу до шуму (англ. Peak Signal-to-Noise Ratio) \\
+        SSIM & індекс структурної схожості (англ. Structural Similarity Index) \\
+        SSM & селективна модель простору станів (англ. Selective State Space Model) \\
+        VRAM & відеопам'ять (англ. Video Random Access Memory) \\
+    \end{longtblr}
+
+    \vspace{1.5em}
+    \noindent\textbf{Терміни}
+    \vspace{0.5em}
+
+    \begin{longtblr}[
+        theme = abbrvlist 
+    ]{
+        width = \textwidth,
+        colspec = {l @{\quad---~~} X[l]}, 
+        rowsep = 0.3em, 
+    }
+        Autoregressive Transformer & авторегресивний трансформер \\
+        baseline model             & базова модель \\
+        batch size                 & розмір пакету \\
+        Diffusion Model            & дифузійна модель \\
+        Transformer                & трансформер \\
+        weight decay               & коефіцієнт згасання ваг \\
+    \end{longtblr}
 
     % (БУДЬ ЛАСКА, ПРОСЛІДКУЙТЕ, ЩОБ НОМЕР СТОРІНКИ СПІВПАДАВ ІЗ СПРАВЖНІМ! Це залежить від того, наскільки великим є ваш зміст.
     % Номер сторінки проставляється у файлі thesis.tex, рядок 31.)

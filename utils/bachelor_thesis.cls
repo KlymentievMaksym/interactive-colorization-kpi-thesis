@@ -8,7 +8,7 @@
 % Сенсей продовжує нерівну боротьбу із міктехом та біблатехом
 
 % 1. Ідентифікуємо клас
-\ProvidesClass{Utills/bachelor_thesis} % [2024/05/01 v0.6 -- Пояснювальна записка до кваліфікаційної роботи бакалавра]
+\ProvidesClass{utils/bachelor_thesis} % [2024/05/01 v0.6 -- Пояснювальна записка до кваліфікаційної роботи бакалавра]
 \NeedsTeXFormat{LaTeX2e} % потрібний формат
 
 
@@ -236,42 +236,78 @@
 
 % хитра команда для створення додатків
 \newcounter{appendnum}
+
+% Макрос для безпечного отримання правильної літери додатка за ДСТУ
+% (Вилучено літери Ґ, Є, З, І, Ї, Й, О, Ч, Ь)
+\makeatletter
+\newcommand{\AsbukAppendix}[1]{\ifcase\value{#1}\or А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Ю\or Я\else ERROR\fi}
+\makeatother
+
 \newcommand{\append}[1]{
+        \stepcounter{appendnum}
         \setcounter{chapter}{0}
         \setcounter{figure}{0}
         \setcounter{table}{0}
         \setcounter{section}{0}
         \setcounter{subsection}{0}
+        \setcounter{equation}{0}
         \titleformat{\chapter}
                 {\centering\Large\bfseries\MakeUppercase}
                 {\hspace{1cm}\thechapter}
                 {0.5em}
                 {}
-        \chapter*{ДОДАТОК \Asbuk{appendnum}~~#1}
-        \addcontentsline{toc}{chapter}{Додаток \Asbuk{appendnum}\ #1}
+        \chapter*{ДОДАТОК \AsbukAppendix{appendnum}~~#1}
+        \addcontentsline{toc}{chapter}{Додаток \AsbukAppendix{appendnum}\ #1}
         \addvspace{-28pt}
         \preto\section{%
                 \ifnum\value{section}=0\addvspace{0pt}\fi%
         }
-        \renewcommand{\thefigure}{\Asbuk{appendnum}.\arabic{figure}}
-        \renewcommand{\thetable}{\Asbuk{appendnum}.\arabic{table}}
-        \renewcommand{\thechapter}{\Asbuk{appendnum}}
-        \renewcommand{\thesection}{\Asbuk{appendnum}.\arabic{section}}
-        \renewcommand{\thesubsection}{\Asbuk{appendnum}.\arabic{section}.\arabic{subsection}}
+        \renewcommand{\thefigure}{\AsbukAppendix{appendnum}.\arabic{figure}}
+        \renewcommand{\thetable}{\AsbukAppendix{appendnum}.\arabic{table}}
+        \renewcommand{\thechapter}{\AsbukAppendix{appendnum}}
+        \renewcommand{\thesection}{\AsbukAppendix{appendnum}.\arabic{section}}
+        \renewcommand{\thesubsection}{\AsbukAppendix{appendnum}.\arabic{section}.\arabic{subsection}}
+        \renewcommand{\theequation}{\AsbukAppendix{appendnum}.\arabic{equation}}
 }
-% прибираємо недопустимі букви з позначення додатків
-\pretocmd\append{
-        \stepcounter{appendnum}
-        \ifnum\Asbuk{appendnum}=Ґ \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Є \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=З \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=І \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ї \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Й \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=О \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ч \stepcounter{appendnum}\fi
-        \ifnum\Asbuk{appendnum}=Ь \stepcounter{appendnum}\fi
-}{}{}
+
+% % хитра команда для створення додатків
+% \newcounter{appendnum}
+% \newcommand{\append}[1]{
+%         \setcounter{chapter}{0}
+%         \setcounter{figure}{0}
+%         \setcounter{table}{0}
+%         \setcounter{section}{0}
+%         \setcounter{subsection}{0}
+%         \titleformat{\chapter}
+%                 {\centering\Large\bfseries\MakeUppercase}
+%                 {\hspace{1cm}\thechapter}
+%                 {0.5em}
+%                 {}
+%         \chapter*{ДОДАТОК \Asbuk{appendnum}~~#1}
+%         \addcontentsline{toc}{chapter}{Додаток \Asbuk{appendnum}\ #1}
+%         \addvspace{-28pt}
+%         \preto\section{%
+%                 \ifnum\value{section}=0\addvspace{0pt}\fi%
+%         }
+%         \renewcommand{\thefigure}{\Asbuk{appendnum}.\arabic{figure}}
+%         \renewcommand{\thetable}{\Asbuk{appendnum}.\arabic{table}}
+%         \renewcommand{\thechapter}{\Asbuk{appendnum}}
+%         \renewcommand{\thesection}{\Asbuk{appendnum}.\arabic{section}}
+%         \renewcommand{\thesubsection}{\Asbuk{appendnum}.\arabic{section}.\arabic{subsection}}
+% }
+% % прибираємо недопустимі букви з позначення додатків
+% \pretocmd\append{
+%         \stepcounter{appendnum}
+%         \ifnum\Asbuk{appendnum}=Ґ \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Є \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=З \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=І \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ї \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Й \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=О \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ч \stepcounter{appendnum}\fi
+%         \ifnum\Asbuk{appendnum}=Ь \stepcounter{appendnum}\fi
+% }{}{}
 
 
 % ************************************************************* %

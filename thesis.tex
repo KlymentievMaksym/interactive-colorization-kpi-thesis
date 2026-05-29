@@ -1,63 +1,70 @@
 % !TEX program = lualatex
 % !BIB program = biber
 
-
 \documentclass{utils/bachelor_thesis}
 
 \input{utils/packages}
 
-\addbibresource{./bibliography/multiple.bib}
-\addbibresource{./bibliography/single_image.bib}
-\addbibresource{./bibliography/single_video.bib}
+\addbibresource{./bibliography/image_colorization.bib}
 
 \input{utils/data}
 \input{utils/redefinitions}
 
+
+% \frenchspacing
+% \onehalfspacing
+
 \begin{document}
-  \pagestyle{plain}
-  \setfontsize{14}
+    \pagestyle{plain}
+    \setfontsize{14pt}
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
 
-  \input{chapters/title}
-  % \input{utils/title_}
-  % \frenchspacing
-  % \doublespacing          % інтервал "1,5" між рядками, тепер навічно
-  % \setfontsize{14}
-  \input{chapters/specification}
-  \input{chapters/abstract}
+    \input{chapters/title}
 
-  % \pagenumbering{gobble}
-  \tableofcontents
-  \cleardoublepage
-  % \pagenumbering{arabic}
+    % \frenchspacing
+    % \doublespacing          % інтервал "1,5" між рядками, тепер навічно
+    % \setfontsize{14}
+    \input{chapters/specification}
+    \input{chapters/abstract}
 
-  \input{chapters/shortings}
+    % \pagenumbering{gobble}
+    \tableofcontents
+    \cleardoublepage
+    % \pagenumbering{arabic}
 
-  \input{chapters/introduction}
+    \input{chapters/shortings}
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
 
-  \foreach \x in {1, 2, ..., 4} {
-    \input{chapters/chapter_0\x}
-  }
+    \input{chapters/introduction}
 
-  % \input{chapters/conclusions}
+    % \makeatletter
+    % Поточний кегль: \f@size pt.
+    % \makeatother
 
-  % Додаємо бібліографію
-  \defbibenvironment{bibliography}
-    {\list
-      {\printfield[labelnumberwidth]{labelnumber}}
-      {\setfontsize{14}%
-      }}
-    {\endlist}
-    {\item}
+    \input{chapters/chapter_01}
+    \input{chapters/chapter_02}
+    \input{chapters/chapter_03}
+    % \foreach \x in {1, 2, ..., 3} {
+    %     \input{chapters/chapter_0\x}
+    % }
 
-  \printbibliography[heading=bibintoc,title={Перелік посилань}]
-  % \printbibliography[title={Перелік посилань}]
+    \input{chapters/conclusions}
 
+    \defbibenvironment{bibliography}
+        {\list
+        {\printfield[labelnumberwidth]{labelnumber}}
+        {\setfontsize{14}%
+        }}
+        {\endlist}
+        {\item}
 
+    \printbibliography[heading=bibintoc,title={Перелік посилань}]
+    % \printbibliography[title={Перелік посилань}]
 
-  % Створюємо додатки (дивись у файли додатків для необхідних пояснень)
-  % Якщо ви маєте меншу або більшу кількість додатків, модифікуйте наступні 
-  % рядки відповідним чином
-  % Якщо ви не маєте додатків, просто закоментуйте наступні рядки
-  % \input{chapters/z1_appendix_A}
-  % \input{chapters/z2_appendix_B}
+    \input{chapters/appendix_A}
+    % \input{chapters/z2_appendix_B}
 \end{document}

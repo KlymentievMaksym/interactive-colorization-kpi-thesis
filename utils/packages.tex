@@ -1,27 +1,23 @@
-%!TEX root = ../thesis.tex
-%%%% У даний файл додавайте всі необхідні вам додаткові пакети, наприклад...
+% !TEX root = ../report.tex
 
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usepackage{float}
 
-%%%% Диаграммы
-%\usepackage{tikz}                      % !!! невідомий конфлікт з якимось іншим пакетом
-
-% Пакети для кольорових текстів (необхідні для команди \todo)
-%\usepackage{xcolor}                     % !!! невідомий конфлікт з якимось іншим пакетом
+\usepackage{xcolor}
 %\usepackage{colortbl}
 
-\usepackage{euscript}   % ещё один красивый шрифт \EuScript
-% \usepackage{mathptmx}  % шрифт Times New Roman
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
 \setmonofont{Courier New}
 \usepackage[nopatch=footnote]{microtype}
 \usepackage{pgffor}  % для циклів \foreach
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{tabularray}
 
 \sloppy
 
-% \usepackage{svg}  % для вставки svg зображень
-
-%%%% ...і таке інше
 
 %\usepackage[normalem]{ulem} % для подчёркиваний uline
 %\ULdepth = 0.16em % расстояние от линии до текста выше/ниже

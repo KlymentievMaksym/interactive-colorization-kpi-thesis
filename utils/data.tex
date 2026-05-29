@@ -1,62 +1,39 @@
 %!TEX root = ../thesis.tex
-%%% Основні відомості %%%
-\newcommand{\UDC}                      % УДК
-{004.}            % УДК виглядає приблизно як 004.056.5 або 513.2, або навіть 004.056.5:513.2+519.1
-% Для того, щоб знайти правильний УДК, використовуйте каталог https://teacode.com/online/udc/
 
-\newcommand{\reportAuthor}             % ПІБ автора повністю
-{Климентьєв Максим Андрійович}
-\newcommand{\reportAuthorFShort}       % ПІБ автора повністю
-{Климентьєв М. А.}
-\newcommand{\reportAuthorShort}        % ПІБ автора коротко
-{Максим КЛИМЕНТЬЄВ}
-\newcommand{\reportAuthorGroup}        % група автора
-{ФІ-21}
-\newcommand{\reportTitle}              % Назва роботи
-{Колоризація зображень та відео з інтерактивною взаємодією користувача та багатоваріантною генерацією результатів. Аналіз та порівняння різних варіантів колоризації.}
+\NewDocumentCommand{\reportAuthor}{}{Климентьєв Максим Андрійович}
+\NewDocumentCommand{\reportAuthorFShort}{}{Климентьєв М. А.}
+\NewDocumentCommand{\reportAuthorShort}{}{Максим КЛИМЕНТЬЄВ}
+\NewDocumentCommand{\reportAuthorGroup}{}{ФІ-21}
+\NewDocumentCommand{\reportAuthorSpec}{}{<<F1 Прикладна математика>>}
+\NewDocumentCommand{\UDC}{}{004.93:004.8} % УДК виглядає приблизно як 004.056.5 або 513.2, або навіть 004.056.5:513.2+519.1
 %% використовуйте символ "\par" або "\\" для розбиття назви на декілька рядків
+\NewDocumentCommand{\reportTitle}{}{Інтерактивна багатоваріантна колоризація зображень на базі гібридної архітектури U-Net та B-Mamba}
+\NewDocumentCommand{\reportEnglishTitle}{}{Interactive Multi-Variant Image Colorization Based on a Hybrid U-Net and B-Mamba Architecture}
 
-\newcommand{\supervisorPib}            % Науковий керівник, ПІБ повністю
-{Железняков Дмитро Валентинович}
-\newcommand{\supervisorPibFShort}      % Науковий керівник, ПІБ повністю
-{Железняков Д. В.}
-\newcommand{\supervisorPibShort}       % Науковий керівник, ПІБ коротко
-{Дмитро ЖЕЛЕЗНЯКОВ}
-\newcommand{\supervisorRegalia}        % Науковий керівник: посада, степінь, звання
-{асистент кафедри ММАД д-р філософії} % наприклад: доцент кафедри ПЕКЛА, д.ф.-м.н., доцент
-                                       % якщо виходить дуже довго - скорочуйте: доц. каф. ПЕКЛА, д.ф.-м.н., доц.
+\NewDocumentCommand{\supervisorPib}{}{Железняков Дмитро Валентинович}
+\NewDocumentCommand{\supervisorPibFShort}{}{Железняков Д. В.}
+\NewDocumentCommand{\supervisorPibShort}{}{Дмитро ЖЕЛЕЗНЯКОВ}
+\NewDocumentCommand{\supervisorRegalia}{}{асистент кафедри ММАД д-р філософії} % Науковий керівник: посада, степінь, звання
+% наприклад: доцент кафедри ПЕКЛА, д.ф.-м.н., доцент
+% якщо виходить дуже довго - скорочуйте: доц. каф. ПЕКЛА, д.ф.-м.н., доц.
 
-\newcommand{\consultPib}               % Консультант, ПІБ повністю
-{}
-\newcommand{\consultRegalia}           % Консультант: звання, степінь, посада
-{}
+\NewDocumentCommand{\consultPib}{}{}
+\NewDocumentCommand{\consultRegalia}{}{} % Консультант: посада, степінь, звання
 % Якщо у вас нема консультанта - залишайте ці поля порожніми
 
+\NewDocumentCommand{\reviewerPib}{}{Прізвище Ім'я По-батькові} % Рецензент, ПІБ повністю
+\NewDocumentCommand{\reviewerRegalia}{}{посада, степінь, звання} % Рецензент: звання, степінь, посада
 
-\newcommand{\reviewerPib}              % Рецензент, ПІБ повністю
-{Прізвище Ім'я По-батькові}                        
-\newcommand{\reviewerRegalia}          % Рецензент: звання, степінь, посада
-{посада, степінь, звання}
+\NewDocumentCommand{\zavcafPib}{}{Іван Терещенко Миколайович} % ПІБ повністю
+\NewDocumentCommand{\zavcafPibShort}{}{Iван ТЕРЕЩЕНКО} % ПІБ коротко
+% \NewDocumentCommand{\zavcafRegalia}{}{завідувачка кафедри ММАД, д.т.н., професор} % звання, степінь, посада
 
+\NewDocumentCommand{\YearOfDefence}{}{\number\numexpr\year} % рік захисту
+\NewDocumentCommand{\YearOfBeginning}{}{\number\numexpr\year-1\relax} % попередній рік - може, можна це якось автоматизувати, нє?
 
-\newcommand{\zavcafPib}              % Рецензент, ПІБ повністю
-{Куссуль Наталія Миколаївна}
-\newcommand{\zavcafPibShort}       % Науковий керівник, ПІБ коротко
-{Наталія КУССУЛЬ}
-\newcommand{\zavcafRegalia}          % Рецензент: звання, степінь, посада
-{завідувачка кафедри ММАД, д.т.н., професор}
-
-\newcommand{\YearOfDefence}            % рік захисту
-{2026}
-\newcommand{\YearOfBeginning}          % попередній рік - може, можна це якось автоматизувати, нє?
-{\number\numexpr\year-1\relax}
-
-\newcommand{\kafedra} % Назва кафедри
-{Кафедра математичного моделювання та аналізу даних}
-\newcommand{\kafedraShort} % Назва кафедри
-{ММАД}
-
-\newcommand{\op} % Назва кафедри
-{Математичні методи моделювання, розпізнавання образів та комп’ютерного зору}
-\newcommand{\opShort} % Назва кафедри
-{Математичні методи моделювання, розпізнавання образів та комп’ютерного зору}
+\NewDocumentCommand{\university}{}{НАЦІОНАЛЬНИЙ ТЕХНІЧНИЙ УНІВЕРСИТЕТ УКРАЇНИ \\ <<КИЇВСЬКИЙ ПОЛІТЕХНІЧНИЙ ІНСТИТУТ \\ імені Ігоря СІКОРСЬКОГО>>}
+\NewDocumentCommand{\institute}{}{Навчально-науковий фізико-технічний інститут}
+\NewDocumentCommand{\kafedra}{}{Кафедра математичного моделювання та аналізу даних} % Назва кафедри
+\NewDocumentCommand{\kafedraShort}{}{ММАД} % Назва кафедри
+\NewDocumentCommand{\op}{}{Математичні методи моделювання, розпізнавання образів та комп'ютерного зору} % Назва кафедри
+\NewDocumentCommand{\opShort}{}{Математичні методи моделювання, розпізнавання образів та комп'ютерного зору} % Назва кафедри
