@@ -294,7 +294,7 @@
                     \node[enc] (enc2) at (-1, -1.5) {\textbf{Enc 2} (DoubleConv)\\$128$ каналів, $\frac{H}{2} \times \frac{W}{2}$};
                     \node[enc] (enc3) at (-1, -3) {\textbf{Enc 3} (DoubleConv)\\$256$ каналів, $\frac{H}{4} \times \frac{W}{4}$};
 
-                    % -- BI-MAMBA --
+                    % -- B-Mamba --
                     \node[box, fill=green!10, draw=green!60!black, minimum width=6cm, minimum height=2.2cm] (mamba) at (2.5, -5) {};
                     \node[above, font=\footnotesize\bfseries, color=black] at (mamba.north) {Bi-Directional Mamba};
                     
@@ -424,5 +424,5 @@
 
 \chapconclude{\ref{chap:implementation}}
     У цьому розділі було детально описано процес інженерного проєктування та практичної реалізації системи інтерактивної багатоваріантної колоризації.
-    Розроблено оригінальну архітектуру Bi-Mamba, яка поєднує U-Net для контролю локальних меж та двонаправлену Mamba зі спільними вагами.
+    Розроблено оригінальну архітектуру B-Mamba, яка поєднує U-Net для контролю локальних меж та двонаправлену Mamba зі спільними вагами.
     Окрім того, створено зручний графічний застосунок.

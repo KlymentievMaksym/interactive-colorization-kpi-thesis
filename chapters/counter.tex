@@ -1,0 +1,21 @@
+% Створюємо власні незалежні лічильники
+\newcounter{totfigcounter}
+\newcounter{tottabcounter}
+
+% Додаємо +1 при кожному виклику середовища (навіть для широких версій із зірочкою)
+\AtBeginEnvironment{figure}{\stepcounter{totfigcounter}}
+\AtBeginEnvironment{figure*}{\stepcounter{totfigcounter}}
+\AtBeginEnvironment{table}{\stepcounter{tottabcounter}}
+\AtBeginEnvironment{table*}{\stepcounter{tottabcounter}}
+
+% Записуємо фінальні значення у системний файл наприкінці документа
+\makeatletter
+\AtEndDocument{%
+  \immediate\write\@mainaux{\string\gdef\string\totfig{\number\value{totfigcounter}}}%
+  \immediate\write\@mainaux{\string\gdef\string\tottab{\number\value{tottabcounter}}}%
+}
+\makeatother
+
+% Ставимо заглушки на випадок найпершої компіляції
+\providecommand{\totfig}{???}
+\providecommand{\tottab}{???}

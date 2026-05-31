@@ -2,21 +2,63 @@
 
 \abstractUkr
 
-Кваліфікаційна робота містить: ??? стор., ??? рисунки, ??? таблиць, ??? джерел.
+    Кваліфікаційна робота містить: \pageref{LastPage}~стор., \totfig~рисунків, \tottab~таблиць, \totbib~джерел.
 
-У рефераті роботи ви повинні коротко (два-три абзаци) викласти, що саме 
-було зроблено у цій роботі. Перші три речення реферату (після статистичних 
-даних) повинні окреслити мету роботи, об'єкт та предмет дослідження. Після 
-цього викладаються основні результати, одержані в ході дослідження.
+    Мета роботи -- розробка обчислювально ефективної системи інтерактивної багатоваріантної колоризації.
+    Об'єкт дослідження -- процес керованого відновлення кольору на монохромних зображеннях.
+    Предмет дослідження -- гібридні генеративні нейромережеві моделі на базі згорток та селективних моделей простору станів.
 
-Наприкінці анотації великими літерами зазначаються ключові слова. Ось так:
+    Спроєктовано та реалізовано гібридну архітектуру B-Mamba, що поєднує точність локального вилучення ознак U-Net із глобальним рецептивним полем двонаправленої Mamba.
+    Для багатоваріантності розроблено алгоритм стохастичної генерації підказок на основі градієнтної значущості.
+    Впровадження спільних ваг дозволило мінімізувати апаратні вимоги.
+    Створено вебзастосунок для керування колоризацією у реальному часі.
 
-\MakeUppercase{КЛЮЧОВІ СЛОВА, СИМЕТРИЧНА КРИПТОГРАФІЯ, ФІЗТЕХ НАЙКРАЩІЙ}
+    Експериментальний аналіз показав, що модель перевершує базові моделі, досягнувши FID 3.078 та LPIPS 0.143.
+    Забезпечено низьке значення похибки дотримання підказок ($\mathrm{MSE}_{\mathrm{HINT}} = 6.1 \times 10^{-5}$) при інференсі 15.08 мс та споживанні 187 МБ відеопам'яті.
+    Користувацьке дослідження підтвердило високу реалістичність генерації та точність просторового керування кольором.
+
+    \MakeUppercase{КОЛОРИЗАЦІЯ ЗОБРАЖЕНЬ, ГЛИБОКЕ НАВЧАННЯ, U-NET, MAMBA, СЕЛЕКТИВНІ МОДЕЛІ ПРОСТОРУ СТАНІВ, ІНТЕРАКТИВНА КОЛОРИЗАЦІЯ, БАГАТОВАРІАНТНА КОЛОРИЗАЦІЯ}
 
 
 \abstractEng
 
-The English abstract must be the exact translation of the Ukrainian 
-``annotation'' (including statistical data and keywords).
+    The qualification work contains: \pageref{LastPage}~pages, \totfig~figures, \tottab~tables, \totbib~references.
+
+    The purpose of the work is to develop a computationally efficient system for interactive multi-variant image colorization.
+    The object of research is the process of controlled color restoration in monochrome images.
+    The subject of research is hybrid generative neural network models based on convolutions and selective state space models.
+
+    A hybrid architecture, B-Mamba, was designed and implemented, combining the precision of U-Net local feature extraction with the global receptive field of bidirectional Mamba.
+    For multi-variant colorization, an algorithm for stochastic hint generation based on gradient saliency was developed.
+    The introduction of shared weights minimized hardware requirements.
+    A web application was created for real-time colorization control.
+
+    Experimental analysis showed that the model outperforms baseline models, achieving an FID of 3.078 and LPIPS of 0.143.
+    A low value of hint-following error was achieved ($\mathrm{MSE}_{\mathrm{HINT}} = 6.1 \times 10^{-5}$) with a 15.08 ms inference time and 187 MB of video memory consumption.
+    A user study confirmed the high visual realism of the generation and the accuracy of spatial color control.
+
+    \MakeUppercase{IMAGE COLORIZATION, DEEP LEARNING, U-NET, MAMBA, SELECTIVE STATE SPACE MODELS, INTERACTIVE COLORIZATION, MULTI-VARIANT COLORIZATION}
 
 \clearpage
+% %!TEX root = ../thesis.tex
+
+% \abstractUkr
+
+% Кваліфікаційна робота містить: ??? стор., ??? рисунки, ??? таблиць, ??? джерел.
+
+% У рефераті роботи ви повинні коротко (два-три абзаци) викласти, що саме 
+% було зроблено у цій роботі. Перші три речення реферату (після статистичних 
+% даних) повинні окреслити мету роботи, об'єкт та предмет дослідження. Після 
+% цього викладаються основні результати, одержані в ході дослідження.
+
+% Наприкінці анотації великими літерами зазначаються ключові слова. Ось так:
+
+% \MakeUppercase{КЛЮЧОВІ СЛОВА, СИМЕТРИЧНА КРИПТОГРАФІЯ, ФІЗТЕХ НАЙКРАЩІЙ}
+
+
+% \abstractEng
+
+% The English abstract must be the exact translation of the Ukrainian 
+% ``annotation'' (including statistical data and keywords).
+
+% \clearpage

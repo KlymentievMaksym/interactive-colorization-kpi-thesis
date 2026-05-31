@@ -18,6 +18,19 @@
 
 \sloppy
 
+\usepackage{lastpage} % Для підрахунку сторінок
+\usepackage[figure,table]{totalcount}
+\usepackage{etoolbox}
+
+\newcounter{totrefs}
+\AtEveryBibitem{\stepcounter{totrefs}} % Додає +1 за кожне джерело у списку
+\makeatletter
+\AtEndDocument{%
+  % Примусово записує фінальне число у допоміжний файл
+  \immediate\write\@mainaux{\string\gdef\string\totbib{\number\value{totrefs}}}%
+}
+\makeatother
+\providecommand{\totbib}{???} % Заглушка на випадок першої компіляції
 
 %\usepackage[normalem]{ulem} % для подчёркиваний uline
 %\ULdepth = 0.16em % расстояние от линии до текста выше/ниже
