@@ -236,15 +236,15 @@
 
 % хитра команда для створення додатків
 \newcounter{appendnum}
+\renewcommand{\theappendnum}{\AsbukAppendix{appendnum}} 
 
 % Макрос для безпечного отримання правильної літери додатка за ДСТУ
-% (Вилучено літери Ґ, Є, З, І, Ї, Й, О, Ч, Ь)
 \makeatletter
 \newcommand{\AsbukAppendix}[1]{\ifcase\value{#1}\or А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Ю\or Я\else ERROR\fi}
 \makeatother
 
 \newcommand{\append}[1]{
-        \stepcounter{appendnum}
+        \refstepcounter{appendnum} % ЗМІНИ ТУТ \stepcounter на \refstepcounter
         \setcounter{chapter}{0}
         \setcounter{figure}{0}
         \setcounter{table}{0}

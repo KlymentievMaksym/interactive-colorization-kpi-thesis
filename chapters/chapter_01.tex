@@ -221,7 +221,7 @@
                 що мережа не ігнорує користувацький ввід, а ідеально інтегрує його у фінальний результат;
 
             \item \textbf{піксельні та структурні метрики:}
-                пікове відношення сигналу до шуму (англ. Peak Signal-to-Noise Ratio, $\mathrm{PSNR}$) та індекс структурної схожості (англ. Structural Similarity Index, $\mathrm{SSIM}$) -- класичні методи порівняння,
+                пікове відношення сигналу до шуму (англ. Peak Signal-to-Noise Ratio, $\mathrm{PSNR}$) \cite{2010-hore-psnr-vs-ssim} та індекс структурної схожості (англ. Structural Similarity Index, $\mathrm{SSIM}$) \cite{2004-wang-image-quality} -- класичні методи порівняння,
                 які вимірюють пряме відхилення згенерованого зображення від еталонного кольорового зображення.
                 $\mathrm{PSNR}$ обчислюється як:
                 \begin{equation*}
@@ -239,13 +239,13 @@
                 вони зафіксують значну помилку, незважаючи на високу візуальну правдоподібність результату;
 
             \item \textbf{перцептивні генеративні метрики:}
-                перцептивна метрика на базі глибоких ознак (англ. Learned Perceptual Image Patch Similarity, $\mathrm{LPIPS}$) використовується для оцінки попарної схожості зображень на рівні глибоких ознак нейронної мережі VGG:
+                перцептивна метрика на базі глибоких ознак (англ. Learned Perceptual Image Patch Similarity, $\mathrm{LPIPS}$) \cite{2018-zhang-unreasonable-effectiveness} використовується для оцінки попарної схожості зображень на рівні глибоких ознак нейронної мережі VGG:
                 \begin{equation*}
                     \mathrm{LPIPS}(x, x_0) = \sum_l \frac{1}{H_l W_l} \sum_{h,w} \| w_l \odot (\hat{y}^l_{hw} - \hat{y}^l_{0hw}) \|_2^2,
                 \end{equation*}
                 де $\hat{y}^l, \hat{y}^l_0$ -- карти ознак $l$-го шару для згенерованого та еталонного зображень; $H_l, W_l$ -- просторові розміри цих карт; $w_l$ -- вектор ваг; $\odot$ -- поелементне множення.
                 
-                Натомість відстань Фреше (англ. Fréchet Inception Distance, $\mathrm{FID}$) та ядерна відстань (англ. Kernel Inception Distance, $\mathrm{KID}$) оцінюють відстань між розподілами ознак усього набору даних:
+                Натомість відстань Фреше (англ. Fréchet Inception Distance, $\mathrm{FID}$) \cite{2017-heusel-gans-trained} та ядерна відстань (англ. Kernel Inception Distance, $\mathrm{KID}$) \cite{2018-binkowski-demystifying-mmd} оцінюють відстань між розподілами ознак усього набору даних:
                 \begin{equation*}
                     \mathrm{FID}(x, y) = \|\mu_x - \mu_y\|^2 + \mathrm{Tr}\left(\Sigma_x + \Sigma_y - 2(\Sigma_x \Sigma_y)^{\frac{1}{2}}\right),
                 \end{equation*}
@@ -409,7 +409,7 @@
         \begin{figure}[ht]
             \centering
             \begin{tikzpicture}[
-                node distance=0.5cm and 0.5cm,
+                node distance=-0.48cm and 0.125cm,
                 every node/.style={
                     font=\small,
                     align=center
@@ -468,10 +468,10 @@
             };
 
             % Лінії
-            \draw[thick] (center) -- (quality);
-            \draw[thick] (center) -- (consistency);
-            \draw[thick] (center) -- (control);
-            \draw[thick] (center) -- (speed);
+            \draw[thick] (center.north) -- ++(0, 0.65) -- (quality.east);
+            \draw[thick] (center.north) -- ++(0, 0.65) -- (consistency.west);
+            \draw[thick] (center.south) -- ++(0, -0.65) -- (control);
+            \draw[thick] (center.south) -- ++(0, -0.65) -- (speed);
 
             \end{tikzpicture}
 
@@ -485,7 +485,7 @@
             \label{tab:comparison}
             \begin{tblr}{
                 width = \textwidth,
-                colspec = {X[2,l,t] X[2,l,t] X[3,l,t] X[3,l,t]},
+                colspec = {X[1.5,l,t] X[2,l,t] X[3,l,t] X[3,l,t]},
                 row{1} = {font=\bfseries, halign=c},
                 hlines,
                 vlines,
@@ -500,35 +500,44 @@
             \end{tblr}
         \end{table}
 
-        Для візуального представлення розглянутих методів на рис.~\ref{fig:methods_examples} наведено приклади результатів їхньої роботи.
+        Для візуального представлення розглянутих методів на рис.~\ref{fig:methods_auto_exemplar} та рис.~\ref{fig:methods_interactive_text} наведено приклади результатів їхньої роботи.
 
         \begin{figure}[ht!]
             \centering
-            \begin{subfigure}[b]{0.24\textwidth}
+            \begin{subfigure}[b]{0.48\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{images/example1.png}
                 \caption{Автоматична}
+                \label{subfig:auto}
             \end{subfigure}
             \hfill
-            \begin{subfigure}[b]{0.24\textwidth}
+            \begin{subfigure}[b]{0.48\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{images/example2.png}
                 \caption{По зразку}
+                \label{subfig:exemplar}
             \end{subfigure}
-            \hfill
-            \begin{subfigure}[b]{0.24\textwidth}
+            \caption{Приклади результатів роботи автоматичного підходу та колоризації за зразком (ілюстрації взято з робіт \cite{2023-ddcolor, 2018-deep-exemplar-based-colorization})}
+            \label{fig:methods_auto_exemplar}
+        \end{figure}
+
+        \begin{figure}[ht!]
+            \centering
+            \begin{subfigure}[b]{0.48\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{images/example3.png}
                 \caption{Інтерактивна}
+                \label{subfig:interactive}
             \end{subfigure}
             \hfill
-            \begin{subfigure}[b]{0.24\textwidth}
+            \begin{subfigure}[b]{0.48\textwidth}
                 \centering
                 \includegraphics[width=\textwidth]{images/example4.png}
                 \caption{По тексту}
+                \label{subfig:text}
             \end{subfigure}
-            \caption{Приклади результатів роботи різних підходів до колоризації (ілюстрації взято з робіт \cite{2023-ddcolor, 2018-deep-exemplar-based-colorization, 2017-real-time-user-guided-image-colorization, 2023-l-cad})}
-            \label{fig:methods_examples}
+            \caption{Приклади результатів роботи інтерактивного та текстового підходів до колоризації (ілюстрації взято з робіт \cite{2017-real-time-user-guided-image-colorization, 2023-l-cad})}
+            \label{fig:methods_interactive_text}
         \end{figure}
 
         Проведений аналіз демонструє наявність компромісу між обчислювальною лінійністю та збереженням локальних просторових контурів у сучасних послідовних моделях.
@@ -552,4 +561,4 @@
     У свою чергу, підходи на базі трансформерів ефективно моделюють глобальний контекст усієї сцени, однак квадратичне зростання обчислювальних витрат $\mathcal{O}(N^2)$ суттєво ускладнює їх масштабування для зображень високої роздільної здатності.
     
     У наступному розділі буде запропоновано власний підхід до вирішення задачі колоризації зображень, що базується на гібридизації архітектури U-Net та Mamba SSM з використанням спільних ваг.
-    Це дозволить ефективно поєднати вилучення низькорівневих просторових ознак, для боротьби з color bleeding, із лінійним моделюванням глобального контексту та суттєвим збереженням пам'яті графічного процесора.
+    Це дозволить ефективно поєднати вилучення низькорівневих просторових ознак, для боротьби з розтіканням кольору, із лінійним моделюванням глобального контексту та суттєвим збереженням пам'яті графічного процесора.
